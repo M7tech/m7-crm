@@ -1,0 +1,21 @@
+<x-layouts::app :title="__('Edit contact')">
+    <div class="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
+        <div>
+            <a href="{{ route('contacts.show', $contact) }}" class="text-sm font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400" wire:navigate>← Back to contact</a>
+            <h1 class="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Edit {{ $contact->full_name }}</h1>
+            <p class="mt-1 text-zinc-600 dark:text-zinc-400">Update contact and company details.</p>
+        </div>
+
+        <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900 sm:p-6">
+            <form method="POST" action="{{ route('contacts.update', $contact) }}" class="grid gap-5">
+                @csrf
+                @method('PUT')
+                @include('contacts._fields')
+                <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                    <flux:button :href="route('contacts.show', $contact)" variant="ghost" wire:navigate>Cancel</flux:button>
+                    <flux:button type="submit" variant="primary">Save changes</flux:button>
+                </div>
+            </form>
+        </section>
+    </div>
+</x-layouts::app>

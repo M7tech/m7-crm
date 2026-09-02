@@ -25,6 +25,12 @@ class ResolveTenant
             return $next($request);
         }
 
+        abort_unless(
+            $user->status === 'active',
+            Response::HTTP_FORBIDDEN,
+            'Your user account is not active.',
+        );
+
         $tenant = $user->tenant;
 
         abort_unless(

@@ -16,6 +16,14 @@
                 <flux:navbar.item icon="building-office-2" :href="route('companies.index')" :current="request()->routeIs('companies.*')" wire:navigate>
                     {{ __('Companies') }}
                 </flux:navbar.item>
+                <flux:navbar.item icon="users" :href="route('contacts.index')" :current="request()->routeIs('contacts.*')" wire:navigate>
+                    {{ __('Contacts') }}
+                </flux:navbar.item>
+                @can('viewAny', \App\Models\Invitation::class)
+                    <flux:navbar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
+                        {{ __('Team') }}
+                    </flux:navbar.item>
+                @endcan
             </flux:navbar>
 
             <flux:spacer />
@@ -44,6 +52,14 @@
                     <flux:sidebar.item icon="building-office-2" :href="route('companies.index')" :current="request()->routeIs('companies.*')" wire:navigate>
                         {{ __('Companies') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="users" :href="route('contacts.index')" :current="request()->routeIs('contacts.*')" wire:navigate>
+                        {{ __('Contacts') }}
+                    </flux:sidebar.item>
+                    @can('viewAny', \App\Models\Invitation::class)
+                        <flux:sidebar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
+                            {{ __('Team') }}
+                        </flux:sidebar.item>
+                    @endcan
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 

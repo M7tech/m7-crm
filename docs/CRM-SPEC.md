@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: first foundation milestone
+Status: contacts milestone in progress
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -19,7 +19,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 
 ## Delivery roadmap
 
-### 0.1 — Foundation (current)
+### 0.1 — Foundation (complete)
 
 - Email/password authentication, email verification, passkeys, and two-factor support
 - SaaS company registration
@@ -31,11 +31,11 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Tenant isolation and authorization tests
 - Coolify-ready container configuration
 
-### 0.2 — Contacts and team administration
+### 0.2 — Contacts and team administration (current)
 
-- Contacts linked to CRM companies
-- Company-admin user invitations
-- User activation/deactivation and role changes
+- Contacts linked to CRM companies, with tenant-isolated create, view, edit, and delete workflows (complete)
+- Company-admin user invitations with expiring single-use links (complete)
+- User activation/deactivation and role changes (complete)
 - CSV import with preview, validation, duplicate handling, and audit record
 
 ### 0.3 — Leads and pipeline
