@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
+use App\Http\Controllers\ContactImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
@@ -19,6 +20,9 @@ Route::middleware('guest')->group(function () {
 Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::resource('companies', CompanyController::class)->only(['index', 'store']);
+    Route::get('contacts/import', [ContactImportController::class, 'create'])->name('contacts.import.create');
+    Route::post('contacts/import/preview', [ContactImportController::class, 'preview'])->name('contacts.import.preview');
+    Route::post('contacts/import', [ContactImportController::class, 'store'])->name('contacts.import.store');
     Route::resource('contacts', ContactController::class)->except(['create']);
     Route::get('team', [TeamController::class, 'index'])->name('team.index');
     Route::post('team/invitations', [InvitationController::class, 'store'])->name('team.invitations.store');

@@ -5,6 +5,7 @@ namespace Tests\Feature\Tenancy;
 use App\Enums\TenantStatus;
 use App\Models\Company;
 use App\Models\Contact;
+use App\Models\ContactImport;
 use App\Models\Invitation;
 use App\Models\Tenant;
 use App\Models\User;
@@ -20,12 +21,20 @@ class TenantIsolationTest extends TestCase
         $tenant = Tenant::factory()->create();
         $company = Company::factory()->for($tenant)->create();
         Contact::factory()->for($tenant)->for($company)->create();
+        $contactImport = new ContactImport([
+            'original_name' => 'contacts.csv',
+            'preview_token_hash' => hash('sha256', 'test-token'),
+        ]);
+        $contactImport->tenant_id = $tenant->id;
+        $contactImport->save();
         Invitation::factory()->for($tenant)->create();
 
         $this->assertSame(0, Company::query()->count());
         $this->assertSame(1, Company::withoutGlobalScopes()->count());
         $this->assertSame(0, Contact::query()->count());
         $this->assertSame(1, Contact::withoutGlobalScopes()->count());
+        $this->assertSame(0, ContactImport::query()->count());
+        $this->assertSame(1, ContactImport::withoutGlobalScopes()->count());
         $this->assertSame(0, Invitation::query()->count());
         $this->assertSame(1, Invitation::withoutGlobalScopes()->count());
     }

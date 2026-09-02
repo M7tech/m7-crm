@@ -1,9 +1,14 @@
 <x-layouts::app :title="__('Contacts')">
     <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-        <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">CRM</p>
-            <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Contacts</h1>
-            <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">People connected to customer companies in your workspace.</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">CRM</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Contacts</h1>
+                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">People connected to customer companies in your workspace.</p>
+            </div>
+            @can('create', \App\Models\ContactImport::class)
+                <flux:button :href="route('contacts.import.create')" icon="arrow-up-tray" wire:navigate>Import CSV</flux:button>
+            @endcan
         </div>
 
         @if (session('status'))

@@ -11,6 +11,7 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `companies` | Tenant | Customer business accounts inside the CRM |
 | `contacts` | Tenant | People linked to CRM customer companies |
 | `invitations` | Tenant | Expiring, single-use invitations for workspace team members |
+| `contact_imports` | Tenant | Audit summaries for previewed and completed contact CSV imports |
 | `sessions` | User | Web sessions |
 | `password_reset_tokens` | User | Password recovery |
 | `passkeys` | User | WebAuthn credentials |
@@ -25,6 +26,8 @@ This application layer must be backed by tests for every tenant-owned module. Po
 The `contacts` table carries both `tenant_id` and `company_id`. Contact form validation requires the selected company to belong to the authenticated tenant, so a cross-tenant company ID cannot create an invalid association.
 
 The `invitations` table stores only a SHA-256 hash of each 384-bit random acceptance token. Invitations expire after seven days and record acceptance. Guest token acceptance is the documented exception to ordinary tenant-scoped lookup: the high-entropy token authorizes only its matching unexpired invitation, and user creation plus acceptance are committed in one transaction.
+
+The `contact_imports` table records the source filename, importer, selected duplicate strategy, row counts, validation failures, and completion time. Preview rows are retained in tenant/user-bound cache for 30 minutes and are never stored in the audit table. Import execution locks the audit record and writes contacts in one transaction to prevent replay or partial imports.
 
 ## Planned tables
 
