@@ -8,7 +8,7 @@ The included `docker-compose.coolify.yml` runs four services from one codebase: 
 2. In Coolify, create a Docker Compose resource from `docker-compose.coolify.yml`.
 3. Add every variable from `.env.coolify.example` to Coolify's environment settings, replacing all placeholder secrets.
 4. Generate `APP_KEY` locally with `php artisan key:generate --show`; do not invent or reuse a key from another application.
-5. Attach the chosen CRM domain to the `app` service on port 8080.
+5. Attach the chosen CRM domain to the `app` service on port 80.
 6. Deploy, then run `php artisan migrate --force` once from the application terminal.
 
 Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL backups to storage outside this VPS before onboarding a real customer.

@@ -44,7 +44,7 @@ services:
       redis:
         condition: service_healthy
     ports:
-      - "8080"
+      - "80"
 
   worker:
     build:

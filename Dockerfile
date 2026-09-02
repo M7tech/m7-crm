@@ -31,9 +31,9 @@ COPY Caddyfile /etc/caddy/Caddyfile
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
     && chown -R www-data:www-data storage bootstrap/cache
 
-EXPOSE 8080
+EXPOSE 80
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD wget -qO- http://127.0.0.1:8080/up || exit 1
+    CMD wget -qO- http://127.0.0.1:80/up || exit 1
 
 CMD ["frankenphp", "run", "--config", "/etc/caddy/Caddyfile"]
