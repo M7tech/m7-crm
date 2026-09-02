@@ -1,0 +1,104 @@
+x-app-environment: &app-environment
+  APP_NAME: ${APP_NAME:-M7 CRM}
+  APP_ENV: ${APP_ENV:-production}
+  APP_KEY: ${APP_KEY}
+  APP_DEBUG: ${APP_DEBUG:-false}
+  APP_URL: ${APP_URL}
+  APP_LOCALE: ${APP_LOCALE:-en}
+  APP_FALLBACK_LOCALE: ${APP_FALLBACK_LOCALE:-en}
+  LOG_CHANNEL: ${LOG_CHANNEL:-stderr}
+  LOG_LEVEL: ${LOG_LEVEL:-info}
+  DB_CONNECTION: pgsql
+  DB_HOST: postgres
+  DB_PORT: 5432
+  DB_DATABASE: ${DB_DATABASE:-m7crm}
+  DB_USERNAME: ${DB_USERNAME:-m7crm}
+  DB_PASSWORD: ${DB_PASSWORD}
+  SESSION_DRIVER: redis
+  SESSION_SECURE_COOKIE: ${SESSION_SECURE_COOKIE:-true}
+  SESSION_SAME_SITE: ${SESSION_SAME_SITE:-lax}
+  QUEUE_CONNECTION: redis
+  CACHE_STORE: redis
+  REDIS_CLIENT: phpredis
+  REDIS_HOST: redis
+  REDIS_PORT: 6379
+  MAIL_MAILER: ${MAIL_MAILER:-smtp}
+  MAIL_HOST: ${MAIL_HOST}
+  MAIL_PORT: ${MAIL_PORT:-587}
+  MAIL_USERNAME: ${MAIL_USERNAME}
+  MAIL_PASSWORD: ${MAIL_PASSWORD}
+  MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
+  MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
+  MAIL_FROM_NAME: ${MAIL_FROM_NAME:-M7 CRM}
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: *app-environment
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8080"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: *app-environment
+    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  scheduler:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: *app-environment
+    command: ["php", "artisan", "schedule:work"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  postgres_data:
+  redis_data:
