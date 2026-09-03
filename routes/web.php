@@ -8,6 +8,8 @@ use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStageController;
+use App\Http\Controllers\MetaIntegrationController;
+use App\Http\Controllers\MetaWebhookController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TeamController;
@@ -17,6 +19,9 @@ use App\Http\Controllers\TaskStatusController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
+
+Route::get('webhooks/meta/{integration}', [MetaWebhookController::class, 'verify'])->name('webhooks.meta.verify');
+Route::post('webhooks/meta/{integration}', [MetaWebhookController::class, 'receive'])->name('webhooks.meta.receive');
 
 Route::middleware('guest')->group(function () {
     Route::get('invitations/{token}', [InvitationAcceptanceController::class, 'show'])->name('invitations.accept.show');
@@ -37,6 +42,11 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::put('tasks/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status.update');
     Route::resource('tasks', TaskController::class)->except(['destroy']);
     Route::get('reports', ReportController::class)->name('reports.index');
+    Route::get('integrations/meta', [MetaIntegrationController::class, 'index'])->name('integrations.meta.index');
+    Route::post('integrations/meta', [MetaIntegrationController::class, 'store'])->name('integrations.meta.store');
+    Route::get('integrations/meta/callback', [MetaIntegrationController::class, 'callback'])->name('integrations.meta.callback');
+    Route::get('integrations/meta/{integration}/connect', [MetaIntegrationController::class, 'redirect'])->name('integrations.meta.redirect');
+    Route::post('integrations/meta/{integration}/page', [MetaIntegrationController::class, 'selectPage'])->name('integrations.meta.page');
     Route::get('team', [TeamController::class, 'index'])->name('team.index');
     Route::post('team/invitations', [InvitationController::class, 'store'])->name('team.invitations.store');
     Route::delete('team/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('team.invitations.destroy');

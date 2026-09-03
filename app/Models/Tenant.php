@@ -66,4 +66,10 @@ class Tenant extends Model
     {
         return $this->hasMany(Task::class);
     }
+
+    /** @return HasMany<Integration, $this> */
+    public function integrations(): HasMany
+    {
+        return $this->hasMany(Integration::class);
+    }
 }

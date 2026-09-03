@@ -7,6 +7,7 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactImport;
 use App\Models\Invitation;
+use App\Models\Integration;
 use App\Models\Lead;
 use App\Models\LeadActivity;
 use App\Models\Pipeline;
@@ -15,6 +16,7 @@ use App\Models\Tenant;
 use App\Models\Task;
 use App\Models\TaskActivity;
 use App\Models\User;
+use App\Models\WebhookEvent;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -65,6 +67,27 @@ class TenantIsolationTest extends TestCase
         $taskActivity = new TaskActivity(['task_id' => $task->id, 'type' => 'created', 'description' => 'Hidden task activity']);
         $taskActivity->tenant_id = $tenant->id;
         $taskActivity->save();
+        $integration = new Integration([
+            'public_id' => 'd84323be-d608-4d86-b6aa-d384a5cd16cf',
+            'provider' => 'meta_lead_ads',
+            'name' => 'Hidden integration',
+            'credentials' => ['app_id' => '123', 'app_secret' => 'secret'],
+            'settings' => ['graph_version' => 'v23.0', 'verify_token' => 'verify'],
+            'company_id' => $company->id,
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $stage->id,
+        ]);
+        $integration->tenant_id = $tenant->id;
+        $integration->save();
+        $webhookEvent = new WebhookEvent([
+            'integration_id' => $integration->id,
+            'provider' => 'meta_lead_ads',
+            'external_id' => 'hidden-event',
+            'event_type' => 'leadgen',
+            'payload' => ['leadgen_id' => 'hidden-event'],
+        ]);
+        $webhookEvent->tenant_id = $tenant->id;
+        $webhookEvent->save();
 
         $this->assertSame(0, Company::query()->count());
         $this->assertSame(1, Company::withoutGlobalScopes()->count());
@@ -86,6 +109,10 @@ class TenantIsolationTest extends TestCase
         $this->assertSame(1, Task::withoutGlobalScopes()->count());
         $this->assertSame(0, TaskActivity::query()->count());
         $this->assertSame(1, TaskActivity::withoutGlobalScopes()->count());
+        $this->assertSame(0, Integration::query()->count());
+        $this->assertSame(1, Integration::withoutGlobalScopes()->count());
+        $this->assertSame(0, WebhookEvent::query()->count());
+        $this->assertSame(1, WebhookEvent::withoutGlobalScopes()->count());
     }
 
     public function test_suspended_tenant_cannot_access_the_crm(): void

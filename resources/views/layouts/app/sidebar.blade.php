@@ -32,6 +32,11 @@
                             {{ __('Reports') }}
                         </flux:sidebar.item>
                     @endcan
+                    @can('create', \App\Models\Integration::class)
+                        <flux:sidebar.item icon="link" :href="route('integrations.meta.index')" :current="request()->routeIs('integrations.*')" wire:navigate>
+                            {{ __('Integrations') }}
+                        </flux:sidebar.item>
+                    @endcan
                     @can('viewAny', \App\Models\Invitation::class)
                         <flux:sidebar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
                             {{ __('Team') }}

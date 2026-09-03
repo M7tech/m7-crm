@@ -30,6 +30,11 @@
                         {{ __('Reports') }}
                     </flux:navbar.item>
                 @endcan
+                @can('create', \App\Models\Integration::class)
+                    <flux:navbar.item icon="link" :href="route('integrations.meta.index')" :current="request()->routeIs('integrations.*')" wire:navigate>
+                        {{ __('Integrations') }}
+                    </flux:navbar.item>
+                @endcan
                 @can('viewAny', \App\Models\Invitation::class)
                     <flux:navbar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
                         {{ __('Team') }}
@@ -75,6 +80,11 @@
                     @can('viewReports')
                         <flux:sidebar.item icon="chart-bar" :href="route('reports.index')" :current="request()->routeIs('reports.*')" wire:navigate>
                             {{ __('Reports') }}
+                        </flux:sidebar.item>
+                    @endcan
+                    @can('create', \App\Models\Integration::class)
+                        <flux:sidebar.item icon="link" :href="route('integrations.meta.index')" :current="request()->routeIs('integrations.*')" wire:navigate>
+                            {{ __('Integrations') }}
                         </flux:sidebar.item>
                     @endcan
                     @can('viewAny', \App\Models\Invitation::class)

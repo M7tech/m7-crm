@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: milestone 0.4 product functionality complete; controlled customer pilots are next
+Status: milestone 0.5 Facebook Lead Ads integration complete; controlled customer pilots are next
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -50,9 +50,14 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Management dashboard and conversion reports with date-range, pipeline, owner, value, and task metrics (complete)
 - First controlled pilots with two or three companies
 
-### 0.5–0.7 — Communication channels
+### 0.5 — Facebook Lead Ads (complete)
 
-- Facebook Lead Ads webhooks
+- Company-admin connection setup inside the CRM, including encrypted Meta credentials and OAuth Page selection
+- Signed, idempotent Facebook Lead Ads webhooks processed by the queue
+- Configurable company, pipeline, stage, and owner destination for newly captured leads
+
+### 0.6–0.7 — Communication channels
+
 - Facebook Messenger and Instagram professional messaging
 - Unified inbox
 - WhatsApp Cloud API and approved message templates

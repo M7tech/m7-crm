@@ -20,3 +20,9 @@ Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL
 - The queue worker and scheduler show as healthy/running.
 - Email verification and password reset work with the production mail provider.
 - A tenant-isolation smoke test is completed using two test companies.
+
+## Meta Lead Ads
+
+Meta App IDs, secrets, and Page access tokens are managed from **CRM → Integrations → Meta Lead Ads** and stored encrypted in the database; they are not Coolify environment variables. A company admin creates the connection, copies the OAuth redirect URI and Page webhook callback/verify token shown by the CRM into the Meta developer app, subscribes the `leadgen` webhook field, then uses **Connect Facebook** to authorize and choose a Page.
+
+Keep the queue worker running: signed webhook deliveries are accepted immediately and the worker retrieves the submitted lead details from Meta before creating the CRM contact, lead, and activity.

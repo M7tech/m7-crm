@@ -18,6 +18,8 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `lead_activities` | Tenant | Immutable audit trail for lead creation, edits, and stage movement |
 | `tasks` | Tenant | Assigned follow-ups with due times, priorities, reminders, and completion state |
 | `task_activities` | Tenant | Immutable audit trail for task creation, edits, completion, and reopening |
+| `integrations` | Tenant | Encrypted provider credentials, external account details, and CRM routing configuration |
+| `webhook_events` | Tenant | Idempotent provider event ledger, processing status, and retained payload metadata |
 | `sessions` | User | Web sessions |
 | `password_reset_tokens` | User | Password recovery |
 | `passkeys` | User | WebAuthn credentials |
@@ -41,6 +43,10 @@ Lead expected values are stored in each currency's smallest unit: cents for USD 
 
 Tasks may link to a lead and are assigned to an active user in the same tenant. Due and reminder inputs are interpreted in the tenant timezone and stored in UTC. Salespeople see tasks assigned to or created by them; company admins and sales managers see their tenant's team tasks. Completion and reopening write append-only `task_activities` records. The scheduler claims due reminders once using `reminder_sent_at`, then queues email delivery for the worker.
 
+Meta Lead Ads credentials and access tokens are stored using Laravel's encrypted cast. Company admins configure a connection and its lead destination inside the CRM; provider credentials are never rendered back into a form. The public webhook URL contains a random UUID, validates the verification token for setup requests, and requires a valid SHA-256 request signature before accepting an event. Resolving that UUID is the documented global-scope exception for incoming provider webhooks; after resolution, the request sets the integration's tenant before any tenant-owned event query or write.
+
+`webhook_events` has a unique integration, event-type, and external-ID key. Incoming requests create the ledger record and enqueue processing in one transaction. The worker locks the ledger row before creating a contact, lead, and immutable lead activity, so webhook retries do not create duplicate opportunities.
+
 ## Planned tables
 
-The next milestones will add broader `activities`, `notes`, `conversations`, `messages`, `integrations`, `webhook_events`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.
+The next milestones will add broader `activities`, `notes`, `conversations`, `messages`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

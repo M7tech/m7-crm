@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withCommands()
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->trustProxies(at: '*');
+        $middleware->validateCsrfTokens(except: ['webhooks/meta/*']);
 
         $middleware->alias([
             'tenant' => ResolveTenant::class,
