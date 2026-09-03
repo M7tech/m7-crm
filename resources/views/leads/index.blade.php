@@ -4,7 +4,7 @@
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">Sales</p>
                 <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Pipeline</h1>
-                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Move opportunities through each stage and keep their history intact.</p>
+                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Drag lead cards between stages. Every movement is recorded automatically.</p>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                 @if ($pipelines->count() > 1)
@@ -36,7 +36,8 @@
             </div>
         @endif
 
-        <div class="overflow-x-auto pb-4">
+        <div data-pipeline-board data-csrf-token="{{ csrf_token() }}" class="overflow-x-auto pb-4">
+            <p data-board-message role="status" aria-live="polite" class="mb-3 hidden rounded-xl px-4 py-3 text-sm font-medium"></p>
             <div class="grid min-w-max auto-cols-[19rem] grid-flow-col gap-4">
                 @foreach ($pipeline->stages as $stage)
                     @php
@@ -53,18 +54,36 @@
                             },
                         };
                     @endphp
-                    <section class="flex max-h-[calc(100vh-15rem)] flex-col rounded-2xl border border-zinc-200 bg-zinc-50/80 dark:border-zinc-700 dark:bg-zinc-900/60">
+                    <section
+                        data-stage-dropzone
+                        data-stage-id="{{ $stage->id }}"
+                        data-stage-name="{{ $stage->name }}"
+                        data-stage-type="{{ $stage->type }}"
+                        class="flex max-h-[calc(100vh-15rem)] flex-col rounded-2xl border border-zinc-200 bg-zinc-50/80 transition dark:border-zinc-700 dark:bg-zinc-900/60"
+                    >
                         <header class="flex items-center justify-between border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
                             <div class="flex items-center gap-2">
                                 <span class="size-2.5 rounded-full {{ $stageClasses }}"></span>
                                 <h2 class="font-semibold text-zinc-950 dark:text-white">{{ $stage->name }}</h2>
                             </div>
-                            <span class="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-zinc-600 shadow-sm dark:bg-zinc-800 dark:text-zinc-300">{{ $stage->leads->count() }}</span>
+                            <span data-stage-count class="rounded-full bg-white px-2 py-0.5 text-xs font-semibold text-zinc-600 shadow-sm dark:bg-zinc-800 dark:text-zinc-300">{{ $stage->leads->count() }}</span>
                         </header>
 
-                        <div class="grid gap-3 overflow-y-auto p-3">
-                            @forelse ($stage->leads as $lead)
-                                <article class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                        <div data-stage-cards class="grid min-h-28 content-start gap-3 overflow-y-auto p-3">
+                            @foreach ($stage->leads as $lead)
+                                <article
+                                    data-lead-card
+                                    data-lead-id="{{ $lead->id }}"
+                                    data-current-stage-id="{{ $stage->id }}"
+                                    data-move-url="{{ route('leads.stage.update', $lead) }}"
+                                    @can('update', $lead) draggable="true" @endcan
+                                    class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition @can('update', $lead) cursor-grab active:cursor-grabbing @endcan dark:border-zinc-700 dark:bg-zinc-900"
+                                >
+                                    @can('update', $lead)
+                                        <div class="mb-2 flex items-center gap-1 text-[0.68rem] font-semibold uppercase tracking-wider text-zinc-400" aria-hidden="true">
+                                            <span>⠿</span><span>Drag to move</span>
+                                        </div>
+                                    @endcan
                                     <a href="{{ route('leads.show', $lead) }}" class="font-semibold text-zinc-950 hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400" wire:navigate>{{ $lead->title }}</a>
                                     <p class="mt-1 truncate text-sm text-zinc-500">{{ $lead->company->name }}</p>
                                     <div class="mt-3 flex items-center justify-between gap-3 text-xs">
@@ -73,22 +92,27 @@
                                     </div>
 
                                     @can('update', $lead)
-                                        <form method="POST" action="{{ route('leads.stage.update', $lead) }}" class="mt-4 grid gap-2 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                                            @csrf
-                                            @method('PUT')
-                                            <select name="stage_id" aria-label="Move {{ $lead->title }} to stage" class="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-                                                @foreach ($pipeline->stages as $destination)
-                                                    <option value="{{ $destination->id }}" @selected($destination->is($stage))>{{ $destination->name }}</option>
-                                                @endforeach
-                                            </select>
-                                            <input name="loss_reason" aria-label="Loss reason" placeholder="Loss reason if moving to Lost" class="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-600 dark:bg-zinc-800 dark:text-white" />
-                                            <button type="submit" class="text-start text-xs font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400">Move lead →</button>
-                                        </form>
+                                        <details class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                                            <summary class="cursor-pointer text-xs font-semibold text-zinc-500 hover:text-emerald-700 dark:hover:text-emerald-400">Move without dragging</summary>
+                                            <form method="POST" action="{{ route('leads.stage.update', $lead) }}" class="mt-3 grid gap-2">
+                                                @csrf
+                                                @method('PUT')
+                                                <select name="stage_id" aria-label="Move {{ $lead->title }} to stage" class="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                                                    @foreach ($pipeline->stages as $destination)
+                                                        <option value="{{ $destination->id }}" @selected($destination->is($stage))>{{ $destination->name }}</option>
+                                                    @endforeach
+                                                </select>
+                                                <input name="loss_reason" aria-label="Loss reason" placeholder="Loss reason if moving to Lost" class="w-full rounded-lg border border-zinc-300 bg-white px-2 py-1.5 text-xs dark:border-zinc-600 dark:bg-zinc-800 dark:text-white" />
+                                                <button type="submit" class="text-start text-xs font-semibold text-emerald-700 hover:text-emerald-800 dark:text-emerald-400">Move lead →</button>
+                                            </form>
+                                        </details>
                                     @endcan
                                 </article>
-                            @empty
-                                <div class="rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700">No leads</div>
-                            @endforelse
+                            @endforeach
+                            <div data-empty-stage @class([
+                                'rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700',
+                                'hidden' => $stage->leads->isNotEmpty(),
+                            ])>Drop leads here</div>
                         </div>
                     </section>
                 @endforeach

@@ -128,10 +128,12 @@ class LeadManagementTest extends TestCase
             ->assertSessionHasErrors('loss_reason');
 
         $this->actingAs($user)
-            ->put(route('leads.stage.update', $lead), [
+            ->putJson(route('leads.stage.update', $lead), [
                 'stage_id' => $lost->id,
                 'loss_reason' => 'Budget was cancelled',
-            ])->assertSessionHasNoErrors();
+            ])->assertOk()
+            ->assertJsonPath('lead.stage_id', $lost->id)
+            ->assertJsonPath('message', 'Lead moved to Lost.');
 
         $lead->refresh();
         $this->assertSame($lost->id, $lead->stage_id);

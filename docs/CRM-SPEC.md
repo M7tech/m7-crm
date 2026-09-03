@@ -41,7 +41,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 ### 0.3 — Leads and pipeline (complete)
 
 - Leads, configurable pipelines, and ordered stages (complete)
-- Pipeline board movement with an immutable activity trail (complete)
+- Drag-and-drop pipeline board movement with an immutable activity trail and accessible form fallback (complete)
 - Assignment, expected value, won/lost outcome, and loss reason (complete)
 
 ### 0.4 — Tasks, follow-ups, and reporting
