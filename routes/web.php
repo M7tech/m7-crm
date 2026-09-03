@@ -9,6 +9,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStageController;
 use App\Http\Controllers\PipelineController;
+use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TaskController;
@@ -35,6 +36,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::resource('leads', LeadController::class)->except(['destroy']);
     Route::put('tasks/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status.update');
     Route::resource('tasks', TaskController::class)->except(['destroy']);
+    Route::get('reports', ReportController::class)->name('reports.index');
     Route::get('team', [TeamController::class, 'index'])->name('team.index');
     Route::post('team/invitations', [InvitationController::class, 'store'])->name('team.invitations.store');
     Route::delete('team/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('team.invitations.destroy');

@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Enums\UserRole;
+use App\Models\User;
 use App\Support\CurrentTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
@@ -28,6 +31,9 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->isProduction()) {
             URL::forceScheme('https');
         }
+
+        Gate::define('viewReports', fn (User $user) => $user->role === UserRole::SuperAdmin
+            || ($user->tenant_id !== null && in_array($user->role, [UserRole::CompanyAdmin, UserRole::SalesManager], true)));
 
         $this->configureDefaults();
     }

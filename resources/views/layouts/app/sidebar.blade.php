@@ -27,6 +27,11 @@
                     <flux:sidebar.item icon="check-circle" :href="route('tasks.index')" :current="request()->routeIs('tasks.*')" wire:navigate>
                         {{ __('Tasks') }}
                     </flux:sidebar.item>
+                    @can('viewReports')
+                        <flux:sidebar.item icon="chart-bar" :href="route('reports.index')" :current="request()->routeIs('reports.*')" wire:navigate>
+                            {{ __('Reports') }}
+                        </flux:sidebar.item>
+                    @endcan
                     @can('viewAny', \App\Models\Invitation::class)
                         <flux:sidebar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
                             {{ __('Team') }}

@@ -4,9 +4,14 @@
             <div>
                 <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">{{ $tenant?->name ?? 'M7 CRM' }}</p>
                 <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Sales workspace</h1>
-                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Your first secure CRM foundation is ready.</p>
+                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Your customer, pipeline, and follow-up overview.</p>
             </div>
-            <flux:button :href="route('companies.index')" icon="plus" variant="primary" wire:navigate>Add company</flux:button>
+            <div class="flex gap-2">
+                @can('viewReports')
+                    <flux:button :href="route('reports.index')" wire:navigate>View reports</flux:button>
+                @endcan
+                <flux:button :href="route('companies.index')" icon="plus" variant="primary" wire:navigate>Add company</flux:button>
+            </div>
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
@@ -16,19 +21,19 @@
                 <p class="mt-2 text-sm text-zinc-500">Customer business accounts</p>
             </div>
             <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-sm font-medium text-zinc-500">Team members</p>
-                <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ number_format($teamCount) }}</p>
-                <p class="mt-2 text-sm text-zinc-500">Users in this workspace</p>
+                <p class="text-sm font-medium text-zinc-500">Open leads</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ number_format($openLeadCount) }}</p>
+                <p class="mt-2 text-sm text-zinc-500">Active sales opportunities</p>
             </div>
             <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <p class="text-sm font-medium text-zinc-500">Plan</p>
-                <p class="mt-3 text-2xl font-semibold capitalize tracking-tight text-zinc-950 dark:text-white">{{ $tenant?->plan ?? 'Platform' }}</p>
-                <p class="mt-2 text-sm text-zinc-500">Workspace subscription</p>
+                <p class="text-sm font-medium text-zinc-500">Due today</p>
+                <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ number_format($dueTodayCount) }}</p>
+                <p class="mt-2 text-sm text-zinc-500">Tasks requiring attention</p>
             </div>
-            <div class="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm dark:border-emerald-900 dark:bg-emerald-950/40">
-                <p class="text-sm font-medium text-emerald-700 dark:text-emerald-300">Tenant isolation</p>
-                <p class="mt-3 text-2xl font-semibold text-emerald-950 dark:text-emerald-100">Active</p>
-                <p class="mt-2 text-sm text-emerald-700/80 dark:text-emerald-300/80">Company data is scope-protected</p>
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-5 shadow-sm dark:border-red-900 dark:bg-red-950/40">
+                <p class="text-sm font-medium text-red-700 dark:text-red-300">Overdue tasks</p>
+                <p class="mt-3 text-3xl font-semibold text-red-950 dark:text-red-100">{{ number_format($overdueTaskCount) }}</p>
+                <p class="mt-2 text-sm text-red-700/80 dark:text-red-300/80">Follow-ups past their due time</p>
             </div>
         </div>
 

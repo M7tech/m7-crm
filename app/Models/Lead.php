@@ -23,10 +23,15 @@ class Lead extends Model
 
     public function formattedExpectedValue(): string
     {
-        $divisor = $this->currency === 'USD' ? 100 : 1000;
-        $decimals = $this->currency === 'USD' ? 2 : 3;
+        return self::formatMinorValue($this->expected_value_minor, $this->currency);
+    }
 
-        return number_format($this->expected_value_minor / $divisor, $decimals).' '.$this->currency;
+    public static function formatMinorValue(int $value, string $currency): string
+    {
+        $divisor = $currency === 'USD' ? 100 : 1000;
+        $decimals = $currency === 'USD' ? 2 : 3;
+
+        return number_format($value / $divisor, $decimals).' '.$currency;
     }
 
     /** @return BelongsTo<Company, $this> */

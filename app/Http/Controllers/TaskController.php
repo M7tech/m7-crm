@@ -106,12 +106,7 @@ class TaskController extends Controller
     /** @return Builder<Task> */
     private function visibleQuery(User $user): Builder
     {
-        return Task::query()->when(
-            $user->role === UserRole::Salesperson,
-            fn (Builder $query) => $query->where(fn (Builder $scope) => $scope
-                ->where('assigned_to_id', $user->id)
-                ->orWhere('created_by_id', $user->id)),
-        );
+        return Task::query()->visibleTo($user);
     }
 
     /** @return array<string, mixed> */

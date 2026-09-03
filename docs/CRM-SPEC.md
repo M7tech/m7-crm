@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: tasks and follow-ups delivered; milestone 0.4 reporting is next
+Status: milestone 0.4 product functionality complete; controlled customer pilots are next
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -47,7 +47,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 ### 0.4 — Tasks, follow-ups, and reporting
 
 - Tenant-local tasks, queued reminders, overdue work, notes, and immutable activity history (complete)
-- Management dashboard and conversion reports
+- Management dashboard and conversion reports with date-range, pipeline, owner, value, and task metrics (complete)
 - First controlled pilots with two or three companies
 
 ### 0.5–0.7 — Communication channels
@@ -80,6 +80,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 ## Product conventions
 
 - Store money as integers in the currency's smallest unit and always store the ISO currency code.
+- Keep currencies separate in reports. Define lead win rate as Won divided by Won plus Lost for leads created in the selected reporting period; open leads do not count as decisions.
 - Store timestamps in UTC and render them in the tenant timezone, initially `Asia/Baghdad`.
 - Preserve original external provider IDs and event payload references for idempotency and audits.
 - Use soft deletion only where recovery or audit requirements justify it.
