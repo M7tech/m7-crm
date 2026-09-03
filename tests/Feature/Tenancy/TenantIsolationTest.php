@@ -7,6 +7,10 @@ use App\Models\Company;
 use App\Models\Contact;
 use App\Models\ContactImport;
 use App\Models\Invitation;
+use App\Models\Lead;
+use App\Models\LeadActivity;
+use App\Models\Pipeline;
+use App\Models\PipelineStage;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -28,6 +32,24 @@ class TenantIsolationTest extends TestCase
         $contactImport->tenant_id = $tenant->id;
         $contactImport->save();
         Invitation::factory()->for($tenant)->create();
+        $pipeline = new Pipeline(['name' => 'Hidden pipeline']);
+        $pipeline->tenant_id = $tenant->id;
+        $pipeline->save();
+        $stage = new PipelineStage(['pipeline_id' => $pipeline->id, 'name' => 'New', 'position' => 1]);
+        $stage->tenant_id = $tenant->id;
+        $stage->save();
+        $lead = new Lead([
+            'company_id' => $company->id,
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $stage->id,
+            'title' => 'Hidden lead',
+            'currency' => 'IQD',
+        ]);
+        $lead->tenant_id = $tenant->id;
+        $lead->save();
+        $activity = new LeadActivity(['lead_id' => $lead->id, 'type' => 'created', 'description' => 'Hidden activity']);
+        $activity->tenant_id = $tenant->id;
+        $activity->save();
 
         $this->assertSame(0, Company::query()->count());
         $this->assertSame(1, Company::withoutGlobalScopes()->count());
@@ -37,6 +59,14 @@ class TenantIsolationTest extends TestCase
         $this->assertSame(1, ContactImport::withoutGlobalScopes()->count());
         $this->assertSame(0, Invitation::query()->count());
         $this->assertSame(1, Invitation::withoutGlobalScopes()->count());
+        $this->assertSame(0, Pipeline::query()->count());
+        $this->assertSame(1, Pipeline::withoutGlobalScopes()->count());
+        $this->assertSame(0, PipelineStage::query()->count());
+        $this->assertSame(1, PipelineStage::withoutGlobalScopes()->count());
+        $this->assertSame(0, Lead::query()->count());
+        $this->assertSame(1, Lead::withoutGlobalScopes()->count());
+        $this->assertSame(0, LeadActivity::query()->count());
+        $this->assertSame(1, LeadActivity::withoutGlobalScopes()->count());
     }
 
     public function test_suspended_tenant_cannot_access_the_crm(): void

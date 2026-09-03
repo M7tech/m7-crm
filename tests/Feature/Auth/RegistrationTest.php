@@ -3,6 +3,8 @@
 namespace Tests\Feature\Auth;
 
 use App\Enums\UserRole;
+use App\Models\Pipeline;
+use App\Models\PipelineStage;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -48,6 +50,12 @@ class RegistrationTest extends TestCase
         $this->assertSame(UserRole::CompanyAdmin, $user->role);
         $this->assertNotNull($user->tenant_id);
         $this->assertSame('Atlas Trading', Tenant::findOrFail($user->tenant_id)->name);
+        $pipeline = Pipeline::withoutGlobalScopes()->where('tenant_id', $user->tenant_id)->sole();
+        $this->assertTrue($pipeline->is_default);
+        $this->assertSame(
+            ['New', 'Qualified', 'Proposal', 'Won', 'Lost'],
+            PipelineStage::withoutGlobalScopes()->where('pipeline_id', $pipeline->id)->orderBy('position')->pluck('name')->all(),
+        );
     }
 
     public function test_company_name_is_required_for_registration(): void

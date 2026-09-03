@@ -48,4 +48,16 @@ class Tenant extends Model
     {
         return $this->hasMany(Invitation::class);
     }
+
+    /** @return HasMany<Pipeline, $this> */
+    public function pipelines(): HasMany
+    {
+        return $this->hasMany(Pipeline::class);
+    }
+
+    /** @return HasMany<Lead, $this> */
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
 }

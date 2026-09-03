@@ -30,4 +30,10 @@ class Company extends Model
     {
         return $this->hasMany(Contact::class);
     }
+
+    /** @return HasMany<Lead, $this> */
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
 }

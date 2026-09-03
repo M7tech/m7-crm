@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: contacts and team administration milestone complete
+Status: leads and pipeline milestone complete
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -38,11 +38,11 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - User activation/deactivation and role changes (complete)
 - CSV import with preview, validation, duplicate handling, and audit record (complete)
 
-### 0.3 — Leads and pipeline (next)
+### 0.3 — Leads and pipeline (complete)
 
-- Leads, configurable pipelines, and stages
-- Kanban movement with an immutable activity trail
-- Assignment, expected value, won/lost outcome, and loss reason
+- Leads, configurable pipelines, and ordered stages (complete)
+- Pipeline board movement with an immutable activity trail (complete)
+- Assignment, expected value, won/lost outcome, and loss reason (complete)
 
 ### 0.4 — Tasks, follow-ups, and reporting
 

@@ -19,6 +19,9 @@
                 <flux:navbar.item icon="users" :href="route('contacts.index')" :current="request()->routeIs('contacts.*')" wire:navigate>
                     {{ __('Contacts') }}
                 </flux:navbar.item>
+                <flux:navbar.item icon="rectangle-stack" :href="route('leads.index')" :current="request()->routeIs('leads.*') || request()->routeIs('pipelines.*')" wire:navigate>
+                    {{ __('Pipeline') }}
+                </flux:navbar.item>
                 @can('viewAny', \App\Models\Invitation::class)
                     <flux:navbar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
                         {{ __('Team') }}
@@ -54,6 +57,9 @@
                     </flux:sidebar.item>
                     <flux:sidebar.item icon="users" :href="route('contacts.index')" :current="request()->routeIs('contacts.*')" wire:navigate>
                         {{ __('Contacts') }}
+                    </flux:sidebar.item>
+                    <flux:sidebar.item icon="rectangle-stack" :href="route('leads.index')" :current="request()->routeIs('leads.*') || request()->routeIs('pipelines.*')" wire:navigate>
+                        {{ __('Pipeline') }}
                     </flux:sidebar.item>
                     @can('viewAny', \App\Models\Invitation::class)
                         <flux:sidebar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>

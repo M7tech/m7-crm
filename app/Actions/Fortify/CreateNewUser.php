@@ -8,6 +8,7 @@ use App\Enums\TenantStatus;
 use App\Enums\UserRole;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\PipelineProvisioner;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -41,6 +42,8 @@ class CreateNewUser implements CreatesNewUsers
                 'timezone' => 'Asia/Baghdad',
                 'locale' => 'en',
             ]);
+
+            app(PipelineProvisioner::class)->createDefault($tenant);
 
             return User::create([
                 'tenant_id' => $tenant->id,
