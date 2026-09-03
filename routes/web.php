@@ -11,6 +11,8 @@ use App\Http\Controllers\LeadStageController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamMemberController;
+use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TaskStatusController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
@@ -31,6 +33,8 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::post('pipeline-settings', [PipelineController::class, 'store'])->name('pipelines.store');
     Route::put('leads/{lead}/stage', [LeadStageController::class, 'update'])->name('leads.stage.update');
     Route::resource('leads', LeadController::class)->except(['destroy']);
+    Route::put('tasks/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status.update');
+    Route::resource('tasks', TaskController::class)->except(['destroy']);
     Route::get('team', [TeamController::class, 'index'])->name('team.index');
     Route::post('team/invitations', [InvitationController::class, 'store'])->name('team.invitations.store');
     Route::delete('team/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('team.invitations.destroy');

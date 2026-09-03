@@ -24,6 +24,9 @@
                     <flux:sidebar.item icon="rectangle-stack" :href="route('leads.index')" :current="request()->routeIs('leads.*') || request()->routeIs('pipelines.*')" wire:navigate>
                         {{ __('Pipeline') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="check-circle" :href="route('tasks.index')" :current="request()->routeIs('tasks.*')" wire:navigate>
+                        {{ __('Tasks') }}
+                    </flux:sidebar.item>
                     @can('viewAny', \App\Models\Invitation::class)
                         <flux:sidebar.item icon="user-group" :href="route('team.index')" :current="request()->routeIs('team.*')" wire:navigate>
                             {{ __('Team') }}

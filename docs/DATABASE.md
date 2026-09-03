@@ -16,6 +16,8 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `pipeline_stages` | Tenant | Ordered open, won, and lost stages within a pipeline |
 | `leads` | Tenant | Sales opportunities linked to companies, contacts, owners, and stages |
 | `lead_activities` | Tenant | Immutable audit trail for lead creation, edits, and stage movement |
+| `tasks` | Tenant | Assigned follow-ups with due times, priorities, reminders, and completion state |
+| `task_activities` | Tenant | Immutable audit trail for task creation, edits, completion, and reopening |
 | `sessions` | User | Web sessions |
 | `password_reset_tokens` | User | Password recovery |
 | `passkeys` | User | WebAuthn credentials |
@@ -37,6 +39,8 @@ Every tenant receives a default sales pipeline with New, Qualified, Proposal, Wo
 
 Lead expected values are stored in each currency's smallest unit: cents for USD and fils for IQD. Moving a lead to Won or Lost sets `closed_at`; Lost also requires a reason. Reopening a lead clears both outcome fields. Each workflow writes an append-only `lead_activities` record in the same database transaction.
 
+Tasks may link to a lead and are assigned to an active user in the same tenant. Due and reminder inputs are interpreted in the tenant timezone and stored in UTC. Salespeople see tasks assigned to or created by them; company admins and sales managers see their tenant's team tasks. Completion and reopening write append-only `task_activities` records. The scheduler claims due reminders once using `reminder_sent_at`, then queues email delivery for the worker.
+
 ## Planned tables
 
-The next milestones will add `tasks`, `activities`, `notes`, `conversations`, `messages`, `integrations`, `webhook_events`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.
+The next milestones will add broader `activities`, `notes`, `conversations`, `messages`, `integrations`, `webhook_events`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

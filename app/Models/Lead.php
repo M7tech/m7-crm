@@ -64,4 +64,10 @@ class Lead extends Model
     {
         return $this->hasMany(LeadActivity::class)->latest('created_at');
     }
+
+    /** @return HasMany<Task, $this> */
+    public function tasks(): HasMany
+    {
+        return $this->hasMany(Task::class);
+    }
 }

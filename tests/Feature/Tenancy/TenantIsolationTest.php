@@ -12,6 +12,8 @@ use App\Models\LeadActivity;
 use App\Models\Pipeline;
 use App\Models\PipelineStage;
 use App\Models\Tenant;
+use App\Models\Task;
+use App\Models\TaskActivity;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -50,6 +52,19 @@ class TenantIsolationTest extends TestCase
         $activity = new LeadActivity(['lead_id' => $lead->id, 'type' => 'created', 'description' => 'Hidden activity']);
         $activity->tenant_id = $tenant->id;
         $activity->save();
+        $task = new Task([
+            'assigned_to_id' => null,
+            'created_by_id' => null,
+            'title' => 'Hidden task',
+            'due_at' => now()->addDay(),
+            'priority' => 'normal',
+            'status' => 'pending',
+        ]);
+        $task->tenant_id = $tenant->id;
+        $task->save();
+        $taskActivity = new TaskActivity(['task_id' => $task->id, 'type' => 'created', 'description' => 'Hidden task activity']);
+        $taskActivity->tenant_id = $tenant->id;
+        $taskActivity->save();
 
         $this->assertSame(0, Company::query()->count());
         $this->assertSame(1, Company::withoutGlobalScopes()->count());
@@ -67,6 +82,10 @@ class TenantIsolationTest extends TestCase
         $this->assertSame(1, Lead::withoutGlobalScopes()->count());
         $this->assertSame(0, LeadActivity::query()->count());
         $this->assertSame(1, LeadActivity::withoutGlobalScopes()->count());
+        $this->assertSame(0, Task::query()->count());
+        $this->assertSame(1, Task::withoutGlobalScopes()->count());
+        $this->assertSame(0, TaskActivity::query()->count());
+        $this->assertSame(1, TaskActivity::withoutGlobalScopes()->count());
     }
 
     public function test_suspended_tenant_cannot_access_the_crm(): void

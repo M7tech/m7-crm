@@ -6,9 +6,12 @@
                 <h1 class="mt-3 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ $lead->title }}</h1>
                 <p class="mt-1 text-zinc-600 dark:text-zinc-400">{{ $lead->company->name }} · {{ $lead->pipeline->name }}</p>
             </div>
-            @can('update', $lead)
-                <flux:button :href="route('leads.edit', $lead)" variant="primary" wire:navigate>Edit lead</flux:button>
-            @endcan
+            <div class="flex flex-wrap gap-2">
+                <flux:button :href="route('tasks.create', ['lead' => $lead->id])" wire:navigate>Schedule follow-up</flux:button>
+                @can('update', $lead)
+                    <flux:button :href="route('leads.edit', $lead)" variant="primary" wire:navigate>Edit lead</flux:button>
+                @endcan
+            </div>
         </div>
 
         @if (session('status'))
