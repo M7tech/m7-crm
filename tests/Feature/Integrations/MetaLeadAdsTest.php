@@ -55,6 +55,20 @@ class MetaLeadAdsTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_company_admin_sees_the_meta_setup_guide_and_support_scope(): void
+    {
+        [$tenant] = $this->destination();
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+
+        $this->actingAs($admin)
+            ->get(route('integrations.meta.index'))
+            ->assertOk()
+            ->assertSee('Facebook &amp; Instagram setup guide', false)
+            ->assertSee('Facebook and Instagram Instant Form leads')
+            ->assertSee('https://developers.facebook.com/apps/', false)
+            ->assertSee('https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/', false);
+    }
+
     public function test_company_admin_can_authorize_meta_and_choose_a_page_in_the_app(): void
     {
         $integration = $this->integration();

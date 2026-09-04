@@ -1,14 +1,58 @@
 <x-layouts::app :title="__('Meta Lead Ads')">
     <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
-        <div>
-            <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">Integrations</p>
-            <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Meta Lead Ads</h1>
-            <p class="mt-1 text-zinc-600 dark:text-zinc-400">Connect a Facebook Page and send new Instant Form submissions into your sales pipeline.</p>
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-blue-600 dark:text-blue-400">Integrations</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Meta Lead Ads</h1>
+                <p class="mt-1 text-zinc-600 dark:text-zinc-400">Connect Facebook and Instagram Instant Forms to your sales pipeline.</p>
+            </div>
+            <a href="#meta-setup-guide" class="inline-flex w-fit items-center gap-2 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-800 shadow-sm transition hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100 dark:hover:bg-zinc-800">
+                Setup guide
+                <span aria-hidden="true">↓</span>
+            </a>
         </div>
 
-        <div class="rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900 dark:border-blue-900 dark:bg-blue-950/40 dark:text-blue-200">
-            Create the Meta developer app once, then manage the connection here. After adding its App ID and Secret, copy the displayed OAuth redirect URI and Page webhook details to Meta, then click <strong>Connect Facebook</strong> to choose the Page and CRM destination.
-        </div>
+        <section id="meta-setup-guide" class="scroll-mt-6 overflow-hidden rounded-2xl border border-blue-200 bg-white shadow-sm dark:border-blue-900 dark:bg-zinc-900">
+            <div class="border-b border-blue-100 bg-blue-50 px-5 py-4 dark:border-blue-900 dark:bg-blue-950/40">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="font-semibold text-blue-950 dark:text-blue-100">Facebook &amp; Instagram setup guide</h2>
+                        <p class="mt-1 text-sm text-blue-800 dark:text-blue-200">Follow these steps once for each Meta developer app.</p>
+                    </div>
+                    <a href="https://developers.facebook.com/apps/" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700">
+                        Open Meta Apps <span aria-hidden="true">↗</span>
+                    </a>
+                </div>
+            </div>
+
+            <ol class="grid gap-px bg-zinc-200 sm:grid-cols-2 xl:grid-cols-4 dark:bg-zinc-700">
+                <li class="bg-white p-5 dark:bg-zinc-900">
+                    <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">1</span>
+                    <h3 class="mt-3 font-medium text-zinc-950 dark:text-white">Create the Meta app</h3>
+                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">In Meta for Developers, create or open your Business app and copy its App ID and App Secret.</p>
+                </li>
+                <li class="bg-white p-5 dark:bg-zinc-900">
+                    <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">2</span>
+                    <h3 class="mt-3 font-medium text-zinc-950 dark:text-white">Create the CRM connection</h3>
+                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Enter the credentials and destination below. The CRM then displays your exact OAuth and webhook values.</p>
+                </li>
+                <li class="bg-white p-5 dark:bg-zinc-900">
+                    <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">3</span>
+                    <h3 class="mt-3 font-medium text-zinc-950 dark:text-white">Configure Meta</h3>
+                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Add the shown OAuth redirect URI. Configure a <strong>Page</strong> webhook with the shown callback and token, then subscribe to <code>leadgen</code>.</p>
+                </li>
+                <li class="bg-white p-5 dark:bg-zinc-900">
+                    <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">4</span>
+                    <h3 class="mt-3 font-medium text-zinc-950 dark:text-white">Connect your Page</h3>
+                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Click <strong>Connect Facebook</strong>, approve access, and select the Page linked to your Facebook or Instagram lead forms.</p>
+                </li>
+            </ol>
+
+            <div class="flex flex-col gap-3 border-t border-zinc-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-zinc-700">
+                <p class="text-zinc-600 dark:text-zinc-400"><strong class="text-zinc-900 dark:text-zinc-100">Currently supported:</strong> Facebook and Instagram Instant Form leads. Messenger and Instagram direct messages are not connected yet.</p>
+                <a href="https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/" target="_blank" rel="noopener noreferrer" class="shrink-0 font-medium text-blue-600 hover:underline dark:text-blue-400">Meta Lead Ads help ↗</a>
+            </div>
+        </section>
 
         @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">{{ session('status') }}</div>
