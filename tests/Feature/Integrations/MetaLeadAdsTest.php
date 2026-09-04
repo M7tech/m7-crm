@@ -88,6 +88,20 @@ class MetaLeadAdsTest extends TestCase
         $this->assertSame('987654321012345', $integration->refresh()->settings['configuration_id']);
     }
 
+    public function test_another_tenant_cannot_update_a_meta_configuration(): void
+    {
+        $integration = $this->integration();
+        $otherAdmin = User::factory()->for(Tenant::factory()->create())->companyAdmin()->create();
+
+        $this->actingAs($otherAdmin)
+            ->put(route('integrations.meta.configuration', $integration), [
+                'configuration_id' => '111111111111111',
+            ])
+            ->assertNotFound();
+
+        $this->assertSame('987654321012345', $integration->refresh()->settings['configuration_id']);
+    }
+
     public function test_connect_facebook_uses_the_business_login_configuration(): void
     {
         $integration = $this->integration();

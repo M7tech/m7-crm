@@ -50,11 +50,12 @@ class MetaIntegrationController extends Controller
         return to_route('integrations.meta.index')->with('status', $integration->name.' was created. Configure its webhook, then connect Facebook.');
     }
 
-    public function updateConfiguration(UpdateMetaIntegrationConfigurationRequest $request, Integration $integration): RedirectResponse
+    public function updateConfiguration(UpdateMetaIntegrationConfigurationRequest $request, string $integration): RedirectResponse
     {
-        $integration->update([
+        $connection = $request->connection();
+        $connection->update([
             'settings' => [
-                ...$integration->settings,
+                ...$connection->settings,
                 'configuration_id' => $request->validated('configuration_id'),
             ],
         ]);
@@ -62,8 +63,9 @@ class MetaIntegrationController extends Controller
         return to_route('integrations.meta.index')->with('status', 'Meta Business Login Configuration ID saved.');
     }
 
-    public function redirect(Integration $integration, Request $request): RedirectResponse
+    public function redirect(string $integration, Request $request): RedirectResponse
     {
+        $integration = $this->connection($integration);
         $this->authorize('update', $integration);
         abort_unless($integration->provider === 'meta_lead_ads', 404);
         $configurationId = $integration->settings['configuration_id'] ?? null;
@@ -118,8 +120,9 @@ class MetaIntegrationController extends Controller
         return view('integrations.meta.pages', compact('integration', 'pages', 'selection'));
     }
 
-    public function selectPage(Request $request, Integration $integration, MetaGraphClient $client): RedirectResponse
+    public function selectPage(Request $request, string $integration, MetaGraphClient $client): RedirectResponse
     {
+        $integration = $this->connection($integration);
         $this->authorize('update', $integration);
         $data = $request->validate(['selection' => ['required', 'string'], 'page_id' => ['required', 'string']]);
         $selection = $request->session()->pull('meta_page_selection.'.$data['selection']);
@@ -174,5 +177,10 @@ class MetaIntegrationController extends Controller
             'pipelines' => Pipeline::query()->with('stages')->orderByDesc('is_default')->get(),
             'members' => User::query()->where('tenant_id', $tenantId)->where('status', 'active')->orderBy('name')->get(),
         ];
+    }
+
+    private function connection(string $publicId): Integration
+    {
+        return Integration::query()->where('public_id', $publicId)->firstOrFail();
     }
 }

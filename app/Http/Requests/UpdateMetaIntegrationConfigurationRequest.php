@@ -7,12 +7,13 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateMetaIntegrationConfigurationRequest extends FormRequest
 {
+    private ?Integration $connection = null;
+
     public function authorize(): bool
     {
-        $integration = $this->route('integration');
+        $integration = $this->connection();
 
-        return $integration instanceof Integration
-            && $integration->provider === 'meta_lead_ads'
+        return $integration->provider === 'meta_lead_ads'
             && ($this->user()?->can('update', $integration) ?? false);
     }
 
@@ -22,5 +23,17 @@ class UpdateMetaIntegrationConfigurationRequest extends FormRequest
         return [
             'configuration_id' => ['required', 'string', 'regex:/^\d{5,30}$/'],
         ];
+    }
+
+    public function connection(): Integration
+    {
+        if ($this->connection instanceof Integration) {
+            return $this->connection;
+        }
+
+        $publicId = $this->route('integration');
+        abort_unless(is_string($publicId), 404);
+
+        return $this->connection = Integration::query()->where('public_id', $publicId)->firstOrFail();
     }
 }
