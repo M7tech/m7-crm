@@ -125,11 +125,11 @@
             <aside class="h-fit rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
                 <h2 class="font-semibold text-zinc-950 dark:text-white">Add Meta app</h2>
                 <p class="mt-1 text-sm text-zinc-500">Credentials are encrypted before database storage.</p>
-                <form method="POST" action="{{ route('integrations.meta.store') }}" class="mt-5 grid gap-4">
+                <form method="POST" action="{{ route('integrations.meta.store') }}" autocomplete="off" class="mt-5 grid gap-4">
                     @csrf
                     <flux:input name="name" :label="__('Connection name')" :value="old('name', 'Facebook Lead Ads')" required />
-                    <flux:input name="app_id" :label="__('Meta App ID')" :value="old('app_id')" required />
-                    <flux:input name="app_secret" type="password" :label="__('Meta App Secret')" required />
+                    <flux:input name="app_id" :label="__('Meta App ID')" :description="__('The numeric App ID from Meta—not an email address.')" :value="old('app_id')" inputmode="numeric" pattern="[0-9]+" autocomplete="off" required />
+                    <flux:input name="app_secret" type="password" :label="__('Meta App Secret')" :description="__('Reveal and copy this from Meta App settings → Basic.')" autocomplete="new-password" required />
                     <flux:input name="configuration_id" :label="__('Business Login Configuration ID')" :description="__('Create this under Meta → Facebook Login for Business → Configurations.')" :value="old('configuration_id')" inputmode="numeric" required />
                     <flux:input name="graph_version" :label="__('Graph API version')" :value="old('graph_version', 'v26.0')" required />
                     <div>

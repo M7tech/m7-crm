@@ -57,6 +57,36 @@ class MetaLeadAdsTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_meta_connection_rejects_an_email_as_app_id_and_a_reused_configuration_id(): void
+    {
+        [$tenant, $company, $pipeline, $stage] = $this->destination();
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+
+        $this->actingAs($admin)->post(route('integrations.meta.store'), [
+            'name' => 'Invalid Meta connection',
+            'app_id' => 'mohammed@m7tech.info',
+            'app_secret' => 'long-enough-app-secret',
+            'configuration_id' => 'mohammed@m7tech.info',
+            'graph_version' => 'v26.0',
+            'company_id' => $company->id,
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $stage->id,
+        ])->assertSessionHasErrors(['app_id', 'configuration_id']);
+
+        $this->actingAs($admin)->post(route('integrations.meta.store'), [
+            'name' => 'Repeated Meta ID',
+            'app_id' => '1765800834750343',
+            'app_secret' => 'long-enough-app-secret',
+            'configuration_id' => '1765800834750343',
+            'graph_version' => 'v26.0',
+            'company_id' => $company->id,
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $stage->id,
+        ])->assertSessionHasErrors(['configuration_id']);
+
+        $this->assertDatabaseCount('integrations', 0);
+    }
+
     public function test_company_admin_sees_the_meta_setup_guide_and_support_scope(): void
     {
         [$tenant] = $this->destination();
