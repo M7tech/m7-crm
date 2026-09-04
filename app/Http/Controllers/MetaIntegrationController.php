@@ -39,7 +39,7 @@ class MetaIntegrationController extends Controller
             'settings' => [
                 'graph_version' => $data['graph_version'],
                 'verify_token' => Str::random(48),
-                'configuration_id' => $data['configuration_id'] ?? null,
+                'configuration_id' => $data['configuration_id'],
             ],
             'company_id' => $data['company_id'],
             'pipeline_id' => $data['pipeline_id'],
@@ -165,6 +165,16 @@ class MetaIntegrationController extends Controller
         ]);
 
         return to_route('integrations.meta.index')->with('status', $page['name'].' is connected to Meta Lead Ads.');
+    }
+
+    public function destroy(string $integration): RedirectResponse
+    {
+        $integration = $this->connection($integration);
+        $this->authorize('delete', $integration);
+        $name = $integration->name;
+        $integration->delete();
+
+        return to_route('integrations.meta.index')->with('status', $name.' was deleted.');
     }
 
     /** @return array<string, mixed> */

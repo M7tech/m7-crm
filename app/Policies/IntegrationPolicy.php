@@ -27,4 +27,9 @@ class IntegrationPolicy
     {
         return $this->create($user) && $user->tenant_id === $integration->tenant_id;
     }
+
+    public function delete(User $user, Integration $integration): bool
+    {
+        return $this->update($user, $integration);
+    }
 }

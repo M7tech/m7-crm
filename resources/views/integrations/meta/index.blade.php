@@ -73,11 +73,20 @@
                                 </div>
                                 <p class="mt-1 text-sm text-zinc-500">{{ $integration->external_account_name ?: 'No Facebook Page selected' }} → {{ $integration->company->name }} / {{ $integration->stage->name }}</p>
                             </div>
-                            @if (filled($integration->settings['configuration_id'] ?? null))
-                                <flux:button :href="route('integrations.meta.redirect', $integration)" variant="primary">{{ $integration->status === 'active' ? 'Reconnect Facebook' : 'Connect Facebook' }}</flux:button>
-                            @else
-                                <a href="#configuration-{{ $integration->public_id }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900">Add Configuration ID</a>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-2">
+                                @if (filled($integration->settings['configuration_id'] ?? null))
+                                    <flux:button :href="route('integrations.meta.redirect', $integration)" variant="primary">{{ $integration->status === 'active' ? 'Reconnect Facebook' : 'Connect Facebook' }}</flux:button>
+                                @else
+                                    <a href="#configuration-{{ $integration->public_id }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900">Add Configuration ID</a>
+                                @endif
+                                @can('delete', $integration)
+                                    <form method="POST" action="{{ route('integrations.meta.destroy', $integration) }}" onsubmit="return confirm('Delete this Meta connection and its webhook history?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <flux:button type="submit" variant="danger">Delete</flux:button>
+                                    </form>
+                                @endcan
+                            </div>
                         </div>
 
                         <div class="mt-5 grid gap-4 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800/70">
@@ -121,7 +130,7 @@
                     <flux:input name="name" :label="__('Connection name')" :value="old('name', 'Facebook Lead Ads')" required />
                     <flux:input name="app_id" :label="__('Meta App ID')" :value="old('app_id')" required />
                     <flux:input name="app_secret" type="password" :label="__('Meta App Secret')" required />
-                    <flux:input name="configuration_id" :label="__('Business Login Configuration ID (optional)')" :value="old('configuration_id')" inputmode="numeric" />
+                    <flux:input name="configuration_id" :label="__('Business Login Configuration ID')" :description="__('Create this under Meta → Facebook Login for Business → Configurations.')" :value="old('configuration_id')" inputmode="numeric" required />
                     <flux:input name="graph_version" :label="__('Graph API version')" :value="old('graph_version', 'v26.0')" required />
                     <div>
                         <label for="company_id" class="mb-2 block text-sm font-medium">Destination company</label>

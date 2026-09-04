@@ -48,6 +48,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::put('integrations/meta/{integration}/configuration', [MetaIntegrationController::class, 'updateConfiguration'])->name('integrations.meta.configuration');
     Route::get('integrations/meta/{integration}/connect', [MetaIntegrationController::class, 'redirect'])->name('integrations.meta.redirect');
     Route::post('integrations/meta/{integration}/page', [MetaIntegrationController::class, 'selectPage'])->name('integrations.meta.page');
+    Route::delete('integrations/meta/{integration}', [MetaIntegrationController::class, 'destroy'])->name('integrations.meta.destroy');
     Route::get('team', [TeamController::class, 'index'])->name('team.index');
     Route::post('team/invitations', [InvitationController::class, 'store'])->name('team.invitations.store');
     Route::delete('team/invitations/{invitation}', [InvitationController::class, 'destroy'])->name('team.invitations.destroy');

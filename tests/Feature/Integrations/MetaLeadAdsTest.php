@@ -31,6 +31,7 @@ class MetaLeadAdsTest extends TestCase
             'name' => 'Main Facebook Page',
             'app_id' => '123456789',
             'app_secret' => 'super-secret-value',
+            'configuration_id' => '987654321012345',
             'graph_version' => 'v23.0',
             'company_id' => $company->id,
             'pipeline_id' => $pipeline->id,
@@ -42,6 +43,7 @@ class MetaLeadAdsTest extends TestCase
         $this->assertSame($tenant->id, $integration->tenant_id);
         $this->assertSame('super-secret-value', $integration->credentials['app_secret']);
         $this->assertStringNotContainsString('super-secret-value', (string) $integration->getRawOriginal('credentials'));
+        $this->assertSame('987654321012345', $integration->settings['configuration_id']);
     }
 
     public function test_non_admin_cannot_create_a_meta_connection(): void
@@ -117,6 +119,31 @@ class MetaLeadAdsTest extends TestCase
         $this->assertSame('code', $query['response_type']);
         $this->assertSame('true', $query['override_default_response_type']);
         $this->assertArrayNotHasKey('scope', $query);
+    }
+
+    public function test_company_admin_can_delete_an_obsolete_meta_connection(): void
+    {
+        $integration = $this->integration();
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+
+        $this->actingAs($admin)
+            ->delete(route('integrations.meta.destroy', $integration))
+            ->assertRedirect(route('integrations.meta.index'));
+
+        $this->assertDatabaseMissing('integrations', ['id' => $integration->id]);
+    }
+
+    public function test_another_tenant_cannot_delete_a_meta_connection(): void
+    {
+        $integration = $this->integration();
+        $otherAdmin = User::factory()->for(Tenant::factory()->create())->companyAdmin()->create();
+
+        $this->actingAs($otherAdmin)
+            ->delete(route('integrations.meta.destroy', $integration))
+            ->assertNotFound();
+
+        $this->assertDatabaseHas('integrations', ['id' => $integration->id]);
     }
 
     public function test_company_admin_can_authorize_meta_and_choose_a_page_in_the_app(): void

@@ -24,7 +24,7 @@ class StoreMetaIntegrationRequest extends FormRequest
             'name' => ['required', 'string', 'max:120'],
             'app_id' => ['required', 'string', 'max:100'],
             'app_secret' => ['required', 'string', 'max:255'],
-            'configuration_id' => ['nullable', 'string', 'regex:/^\d{5,30}$/'],
+            'configuration_id' => ['required', 'string', 'regex:/^\d{5,30}$/'],
             'graph_version' => ['required', 'regex:/^v\d+\.\d+$/'],
             'company_id' => ['required', 'integer', Rule::exists('companies', 'id')->where('tenant_id', $tenantId)],
             'pipeline_id' => ['required', 'integer', Rule::exists('pipelines', 'id')->where('tenant_id', $tenantId)],
