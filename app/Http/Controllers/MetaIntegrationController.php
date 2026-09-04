@@ -84,6 +84,7 @@ class MetaIntegrationController extends Controller
             'config_id' => $configurationId,
             'response_type' => 'code',
             'override_default_response_type' => 'true',
+            'auth_type' => 'rerequest',
         ]);
 
         return redirect()->away('https://www.facebook.com/'.$integration->settings['graph_version'].'/dialog/oauth?'.$query);
@@ -149,7 +150,9 @@ class MetaIntegrationController extends Controller
         try {
             $client->subscribePage($integration, (string) $page['id'], (string) $page['access_token']);
         } catch (\Throwable) {
-            throw ValidationException::withMessages(['meta' => 'The Page could not be subscribed to leadgen webhooks. Check Page access and app permissions.']);
+            return to_route('integrations.meta.index')->withErrors([
+                'meta' => 'Meta returned the Page but refused its leadgen webhook subscription. Add pages_manage_metadata and leads_retrieval to the Business Login configuration, save it, then reconnect Facebook.',
+            ]);
         }
 
         $integration->update([

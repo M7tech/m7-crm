@@ -148,7 +148,40 @@ class MetaLeadAdsTest extends TestCase
         $this->assertSame('987654321012345', $query['config_id']);
         $this->assertSame('code', $query['response_type']);
         $this->assertSame('true', $query['override_default_response_type']);
+        $this->assertSame('rerequest', $query['auth_type']);
         $this->assertArrayNotHasKey('scope', $query);
+    }
+
+    public function test_page_subscription_failure_returns_to_integrations_with_actionable_error(): void
+    {
+        $integration = $this->integration();
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+        Http::fake([
+            'graph.facebook.com/*/page-789/subscribed_apps' => Http::response([
+                'error' => ['message' => 'Missing permission'],
+            ], 400),
+        ]);
+
+        $this->actingAs($admin)
+            ->withSession(['meta_page_selection.valid-selection' => [
+                'integration_id' => $integration->id,
+                'user_id' => $admin->id,
+                'user_token' => 'long-user-token',
+                'pages' => [[
+                    'id' => 'page-789',
+                    'name' => 'AtlasPlast',
+                    'access_token' => 'page-access-token',
+                ]],
+            ]])
+            ->post(route('integrations.meta.page', $integration), [
+                'selection' => 'valid-selection',
+                'page_id' => 'page-789',
+            ])
+            ->assertRedirect(route('integrations.meta.index'))
+            ->assertSessionHasErrors(['meta']);
+
+        $this->assertNull($integration->refresh()->external_account_id);
     }
 
     public function test_company_admin_can_delete_an_obsolete_meta_connection(): void
