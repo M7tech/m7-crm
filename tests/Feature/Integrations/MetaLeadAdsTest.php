@@ -264,10 +264,11 @@ class MetaLeadAdsTest extends TestCase
         Queue::fake();
         $integration = $this->integration();
 
+        // PHP normalizes Meta's dotted query-string keys before Laravel sees them.
         $this->get(route('webhooks.meta.verify', $integration->public_id).'?'.http_build_query([
-            'hub.mode' => 'subscribe',
-            'hub.verify_token' => $integration->settings['verify_token'],
-            'hub.challenge' => 'challenge-123',
+            'hub_mode' => 'subscribe',
+            'hub_verify_token' => $integration->settings['verify_token'],
+            'hub_challenge' => 'challenge-123',
         ]))->assertOk()->assertSeeText('challenge-123');
 
         $payload = ['object' => 'page', 'entry' => [[

@@ -15,13 +15,19 @@ class MetaWebhookController extends Controller
     public function verify(Request $request, string $integration, CurrentTenant $currentTenant): Response
     {
         $connection = $this->connection($integration, $currentTenant);
-        $valid = $request->query('hub.mode') === 'subscribe'
-            && is_string($request->query('hub.verify_token'))
-            && hash_equals((string) $connection->settings['verify_token'], (string) $request->query('hub.verify_token'));
+        // PHP normalizes dots in query-string keys to underscores. Meta sends
+        // hub.mode, hub.verify_token, and hub.challenge, which therefore arrive
+        // as hub_mode, hub_verify_token, and hub_challenge in production.
+        $mode = $request->query('hub_mode', $request->query('hub.mode'));
+        $verifyToken = $request->query('hub_verify_token', $request->query('hub.verify_token'));
+        $challenge = $request->query('hub_challenge', $request->query('hub.challenge'));
+        $valid = $mode === 'subscribe'
+            && is_string($verifyToken)
+            && hash_equals((string) $connection->settings['verify_token'], $verifyToken);
 
         abort_unless($valid, 403, 'Invalid webhook verification token.');
 
-        return response((string) $request->query('hub.challenge'), 200)->header('Content-Type', 'text/plain');
+        return response((string) $challenge, 200)->header('Content-Type', 'text/plain');
     }
 
     public function receive(Request $request, string $integration, CurrentTenant $currentTenant): Response
