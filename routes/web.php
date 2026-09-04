@@ -12,6 +12,7 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStageController;
 use App\Http\Controllers\MetaIntegrationController;
 use App\Http\Controllers\MetaWebhookController;
+use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TeamController;
@@ -47,6 +48,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::get('inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
     Route::post('inbox/{conversation}/messages', [InboxController::class, 'reply'])->name('inbox.reply');
     Route::get('reports', ReportController::class)->name('reports.index');
+    Route::get('operations', OperationsController::class)->name('operations.index');
     Route::get('automations', [AutomationRuleController::class, 'index'])->name('automations.index');
     Route::post('automations', [AutomationRuleController::class, 'store'])->name('automations.store');
     Route::put('automations/{automationRule}/status', [AutomationRuleController::class, 'updateStatus'])->name('automations.status');

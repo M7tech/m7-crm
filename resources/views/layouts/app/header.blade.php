@@ -30,6 +30,11 @@
                         {{ __('Reports') }}
                     </flux:navbar.item>
                 @endcan
+                @can('viewOperations')
+                    <flux:navbar.item icon="server-stack" :href="route('operations.index')" :current="request()->routeIs('operations.*')" wire:navigate>
+                        {{ __('Operations') }}
+                    </flux:navbar.item>
+                @endcan
                 @can('viewAny', \App\Models\AutomationRule::class)
                     <flux:navbar.item icon="bolt" :href="route('automations.index')" :current="request()->routeIs('automations.*')" wire:navigate>
                         {{ __('Automations') }}
@@ -85,6 +90,11 @@
                     @can('viewReports')
                         <flux:sidebar.item icon="chart-bar" :href="route('reports.index')" :current="request()->routeIs('reports.*')" wire:navigate>
                             {{ __('Reports') }}
+                        </flux:sidebar.item>
+                    @endcan
+                    @can('viewOperations')
+                        <flux:sidebar.item icon="server-stack" :href="route('operations.index')" :current="request()->routeIs('operations.*')" wire:navigate>
+                            {{ __('Operations') }}
                         </flux:sidebar.item>
                     @endcan
                     @can('viewAny', \App\Models\AutomationRule::class)

@@ -35,6 +35,11 @@
                             {{ __('Reports') }}
                         </flux:sidebar.item>
                     @endcan
+                    @can('viewOperations')
+                        <flux:sidebar.item icon="server-stack" :href="route('operations.index')" :current="request()->routeIs('operations.*')" wire:navigate>
+                            {{ __('Operations') }}
+                        </flux:sidebar.item>
+                    @endcan
                     @can('viewAny', \App\Models\AutomationRule::class)
                         <flux:sidebar.item icon="bolt" :href="route('automations.index')" :current="request()->routeIs('automations.*')" wire:navigate>
                             {{ __('Automations') }}

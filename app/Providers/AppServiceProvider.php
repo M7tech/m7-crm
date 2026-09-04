@@ -39,6 +39,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('viewReports', fn (User $user) => $user->role === UserRole::SuperAdmin
             || ($user->tenant_id !== null && in_array($user->role, [UserRole::CompanyAdmin, UserRole::SalesManager], true)));
 
+        Gate::define('viewOperations', fn (User $user) => $user->role === UserRole::SuperAdmin);
+
         $this->configureDefaults();
     }
 
