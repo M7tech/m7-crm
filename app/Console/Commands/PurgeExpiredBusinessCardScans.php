@@ -22,7 +22,12 @@ class PurgeExpiredBusinessCardScans extends Command
             ->chunkById(100, function ($scans): void {
                 foreach ($scans as $scan) {
                     if (filled($scan->image_path)) {
-                        Storage::disk($scan->disk)->delete($scan->image_path);
+                        $storage = Storage::disk($scan->disk);
+
+                        if ($storage->exists($scan->image_path)
+                            && ! $storage->delete($scan->image_path)) {
+                            continue;
+                        }
                     }
 
                     $scan->delete();

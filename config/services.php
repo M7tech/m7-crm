@@ -22,9 +22,10 @@ return [
         'key' => env('RESEND_API_KEY'),
     ],
 
-    'openai' => [
-        'api_key' => env('OPENAI_API_KEY'),
-        'business_card_model' => env('OPENAI_BUSINESS_CARD_MODEL', 'gpt-5.6-luna'),
+    'business_card_ocr' => [
+        'tesseract_binary' => env('BUSINESS_CARD_TESSERACT_BINARY', 'tesseract'),
+        'imagemagick_binary' => env('BUSINESS_CARD_IMAGEMAGICK_BINARY', 'magick'),
+        'languages' => env('BUSINESS_CARD_OCR_LANGUAGES', 'eng+ara+lat'),
     ],
 
     'ses' => [

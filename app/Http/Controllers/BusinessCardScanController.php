@@ -8,6 +8,7 @@ use App\Jobs\ProcessBusinessCardScan;
 use App\Models\BusinessCardScan;
 use App\Models\Company;
 use App\Models\Contact;
+use App\Services\BusinessCardOcr;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
@@ -20,12 +21,12 @@ use Throwable;
 
 class BusinessCardScanController extends Controller
 {
-    public function create(): View
+    public function create(BusinessCardOcr $ocr): View
     {
         $this->authorize('create', BusinessCardScan::class);
 
         return view('contacts.business-cards.create', [
-            'configured' => filled(config('services.openai.api_key')),
+            'scannerAvailable' => $ocr->isAvailable(),
             'scans' => BusinessCardScan::query()
                 ->with(['contact:id,first_name,last_name'])
                 ->latest()
@@ -34,11 +35,11 @@ class BusinessCardScanController extends Controller
         ]);
     }
 
-    public function store(StoreBusinessCardScanRequest $request): RedirectResponse
+    public function store(StoreBusinessCardScanRequest $request, BusinessCardOcr $ocr): RedirectResponse
     {
-        if (blank(config('services.openai.api_key'))) {
+        if (! $ocr->isAvailable()) {
             throw ValidationException::withMessages([
-                'card_image' => 'Business-card scanning is not configured yet. Add OPENAI_API_KEY in Coolify.',
+                'card_image' => 'The local business-card scanner is unavailable. Redeploy the application image.',
             ]);
         }
 
@@ -136,9 +137,15 @@ class BusinessCardScanController extends Controller
             return $contact;
         });
 
-        if (filled($businessCardScan->image_path)
-            && Storage::disk($businessCardScan->disk)->delete($businessCardScan->image_path)) {
-            $businessCardScan->update(['image_path' => null]);
+        if (filled($businessCardScan->image_path)) {
+            $storage = Storage::disk($businessCardScan->disk);
+
+            if (! $storage->exists($businessCardScan->image_path)
+                || $storage->delete($businessCardScan->image_path)) {
+                $businessCardScan->update(['image_path' => null]);
+            } else {
+                $businessCardScan->update(['expires_at' => now()]);
+            }
         }
 
         return to_route('contacts.show', $contact)

@@ -9,13 +9,13 @@ use App\Models\Contact;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Services\BusinessCardOcr;
+use App\Services\BusinessCardTextParser;
 use App\Support\CurrentTenant;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Client\Request;
 use Illuminate\Http\UploadedFile;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
+use Mockery;
 use Tests\TestCase;
 
 class BusinessCardScanTest extends TestCase
@@ -26,7 +26,9 @@ class BusinessCardScanTest extends TestCase
     {
         Storage::fake('local');
         Queue::fake();
-        config()->set('services.openai.api_key', 'test-key');
+        $ocr = Mockery::mock(BusinessCardOcr::class);
+        $ocr->shouldReceive('isAvailable')->once()->andReturnTrue();
+        $this->app->instance(BusinessCardOcr::class, $ocr);
         $tenant = Tenant::factory()->create();
         $user = User::factory()->for($tenant)->create();
 
@@ -47,6 +49,9 @@ class BusinessCardScanTest extends TestCase
     public function test_card_upload_rejects_unsupported_files_and_requires_server_configuration(): void
     {
         Storage::fake('local');
+        $ocr = Mockery::mock(BusinessCardOcr::class);
+        $ocr->shouldReceive('isAvailable')->once()->andReturnFalse();
+        $this->app->instance(BusinessCardOcr::class, $ocr);
         $user = User::factory()->create();
 
         $this->actingAs($user)
@@ -64,11 +69,9 @@ class BusinessCardScanTest extends TestCase
         $this->assertDatabaseCount('business_card_scans', 0);
     }
 
-    public function test_worker_extracts_arabic_and_kurdish_contact_data_without_api_storage(): void
+    public function test_worker_stores_local_multilingual_ocr_result(): void
     {
         Storage::fake('local');
-        config()->set('services.openai.api_key', 'test-key');
-        config()->set('services.openai.business_card_model', 'gpt-5.6-luna');
         $tenant = Tenant::factory()->create();
         $user = User::factory()->for($tenant)->create();
         $scan = BusinessCardScan::factory()->for($tenant)->create([
@@ -88,21 +91,18 @@ class BusinessCardScanTest extends TestCase
             'notes' => null,
             'detected_languages' => ['Arabic', 'Kurdish Sorani'],
         ];
-        Http::fake([
-            'api.openai.com/v1/responses' => Http::response([
-                'id' => 'resp_business_card_1',
-                'output' => [[
-                    'type' => 'message',
-                    'content' => [[
-                        'type' => 'output_text',
-                        'text' => json_encode($extracted, JSON_THROW_ON_ERROR | JSON_UNESCAPED_UNICODE),
-                    ]],
-                ]],
-            ]),
-        ]);
+        $ocr = Mockery::mock(BusinessCardOcr::class);
+        $ocr->shouldReceive('extract')
+            ->once()
+            ->with('fake-image-bytes', 'image/jpeg')
+            ->andReturn([
+                'data' => $extracted,
+                'model' => 'tesseract-local:eng+ara+lat',
+                'response_id' => null,
+            ]);
 
         (new ProcessBusinessCardScan($scan->id, $tenant->id))->handle(
-            app(BusinessCardOcr::class),
+            $ocr,
             app(CurrentTenant::class),
         );
 
@@ -110,17 +110,48 @@ class BusinessCardScanTest extends TestCase
         $this->assertSame('completed', $scan->status);
         $this->assertSame('محمد', $scan->extracted_data['first_name']);
         $this->assertSame('بەڕێوەبەری فرۆشتن', $scan->extracted_data['job_title']);
-        $this->assertSame('info@example.iq', $scan->extracted_data['email']);
-        $this->assertSame('resp_business_card_1', $scan->provider_response_id);
-        Http::assertSent(function (Request $request): bool {
-            $imageUrl = data_get($request->data(), 'input.0.content.1.image_url');
+        $this->assertSame('INFO@EXAMPLE.IQ', $scan->extracted_data['email']);
+        $this->assertSame('tesseract-local:eng+ara+lat', $scan->provider_model);
+        $this->assertNull($scan->provider_response_id);
+    }
 
-            return $request->url() === 'https://api.openai.com/v1/responses'
-                && $request['store'] === false
-                && $request['model'] === 'gpt-5.6-luna'
-                && is_string($imageUrl)
-                && str_starts_with($imageUrl, 'data:image/jpeg;base64,');
-        });
+    public function test_local_parser_extracts_reviewable_contact_fields_from_mixed_script_text(): void
+    {
+        $parsed = app(BusinessCardTextParser::class)->parse(<<<'CARD'
+محمد شاكر
+بەڕێوەبەری فرۆشتن
+کۆمپانیای هەولێر
+INFO@EXAMPLE.IQ
++964 750 000 0000
+example.iq
+هەولێر، عێراق
+CARD);
+
+        $this->assertSame('محمد', $parsed['first_name']);
+        $this->assertSame('شاكر', $parsed['last_name']);
+        $this->assertSame('بەڕێوەبەری فرۆشتن', $parsed['job_title']);
+        $this->assertSame('کۆمپانیای هەولێر', $parsed['company_name']);
+        $this->assertSame('info@example.iq', $parsed['email']);
+        $this->assertSame('+964 750 000 0000', $parsed['phone']);
+        $this->assertSame('example.iq', $parsed['website']);
+        $this->assertSame('هەولێر، عێراق', $parsed['address']);
+        $this->assertContains('Kurdish Sorani', $parsed['detected_languages']);
+        $this->assertStringContainsString('OCR text:', $parsed['notes']);
+
+        $kurmanji = app(BusinessCardTextParser::class)->parse(<<<'CARD'
+Baran Ahmed
+Rêveberê Firotanê
+Kurd Tech Company
+baran@example.com
++964 751 000 0000
+Erbil, Iraq
+CARD);
+
+        $this->assertSame('Baran', $kurmanji['first_name']);
+        $this->assertSame('Ahmed', $kurmanji['last_name']);
+        $this->assertSame('Rêveberê Firotanê', $kurmanji['job_title']);
+        $this->assertSame('Kurd Tech Company', $kurmanji['company_name']);
+        $this->assertContains('Kurdish Kurmanji', $kurmanji['detected_languages']);
     }
 
     public function test_user_reviews_and_saves_extracted_fields_then_image_is_deleted(): void

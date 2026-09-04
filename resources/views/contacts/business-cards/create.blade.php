@@ -12,10 +12,10 @@
             </div>
         @endif
 
-        @unless ($configured)
+        @unless ($scannerAvailable)
             <div class="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200">
-                <p class="font-semibold">Scanner setup is incomplete</p>
-                <p class="mt-1">A server administrator must add <code class="rounded bg-amber-100 px-1.5 py-0.5 dark:bg-amber-900">OPENAI_API_KEY</code> in Coolify and redeploy.</p>
+                <p class="font-semibold">Local scanner unavailable</p>
+                <p class="mt-1">The application must be redeployed with its bundled OCR engine before cards can be scanned.</p>
             </div>
         @endunless
 
@@ -73,10 +73,10 @@
 
                     <div class="rounded-xl bg-zinc-50 p-4 text-sm text-zinc-600 dark:bg-zinc-800/70 dark:text-zinc-300">
                         <p class="font-medium text-zinc-900 dark:text-white">Privacy</p>
-                        <p class="mt-1">The image is stored privately, sent to the configured OpenAI API only for extraction with response storage disabled, and removed after you save the contact. Unsaved scans expire after 24 hours.</p>
+                        <p class="mt-1">The image is read only by this server. After you approve and save the contact, the image and temporary OCR result are deleted immediately. Unsaved scans expire after 24 hours.</p>
                     </div>
 
-                    <flux:button type="submit" variant="primary" class="w-full" :disabled="! $configured">Scan business card</flux:button>
+                    <flux:button type="submit" variant="primary" class="w-full" :disabled="! $scannerAvailable">Scan business card</flux:button>
                 </form>
             </section>
 

@@ -29,6 +29,6 @@ Keep the queue worker running: signed webhook deliveries are accepted immediatel
 
 ## Business-card scanner
 
-Add an OpenAI project API key as `OPENAI_API_KEY` in Coolify. The optional `OPENAI_BUSINESS_CARD_MODEL` defaults to `gpt-5.6-luna`. Redeploy all Compose services after adding the variables, then run `php artisan migrate --force` in the app container. The app, worker, and scheduler services mount the same `private_storage` volume so a private image uploaded by the web container can be read by the queued scanner and purged after use.
+The production image includes Tesseract with English, Arabic, and Latin-script recognition plus ImageMagick preprocessing. No external AI account or API key is required, and card images do not leave the server. Redeploy all Compose services, then run `php artisan migrate --force` in the app container. The app, worker, and scheduler services mount the same `private_storage` volume so a private image uploaded by the web container can be read by the queued scanner and purged after use.
 
-Confirm the queue worker and scheduler remain running. Scan one test card from **Contacts → Scan business card**, review the extracted fields, save it, and verify that the new contact belongs to the selected CRM company.
+Confirm the queue worker and scheduler remain running. Scan one test card from **Contacts → Scan business card**, review the extracted fields, save it, and verify that the new contact belongs to the selected CRM company. Saving deletes the private card image and temporary extracted result immediately; abandoned scans are deleted after 24 hours.

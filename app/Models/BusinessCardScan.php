@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'public_id', 'company_id', 'uploaded_by_id', 'contact_id', 'status', 'disk', 'image_path',
@@ -80,7 +81,7 @@ class BusinessCardScan extends Model
             'email' => $email,
             'phone' => $phone,
             'status' => 'active',
-            'notes' => $notes,
+            'notes' => Str::limit($notes, 2000, ''),
         ];
     }
 

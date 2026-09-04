@@ -21,7 +21,15 @@ RUN npm run build
 
 FROM dunglas/frankenphp:1-php8.4-alpine
 
-RUN install-php-extensions pdo_pgsql redis pcntl intl zip opcache
+RUN install-php-extensions pdo_pgsql redis pcntl intl zip opcache \
+    && apk add --no-cache \
+        imagemagick \
+        imagemagick-jpeg \
+        imagemagick-webp \
+        tesseract-ocr \
+        tesseract-ocr-data-ara \
+        tesseract-ocr-data-eng \
+        tesseract-ocr-data-lat
 
 COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 

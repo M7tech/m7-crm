@@ -123,7 +123,7 @@
                                 @error('notes') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
                             </div>
 
-                            <flux:button type="submit" variant="primary" class="sm:col-span-2">Save contact</flux:button>
+                            <flux:button type="submit" variant="primary" class="sm:col-span-2">Save contact and delete card</flux:button>
                         </form>
                     @endif
                 </section>

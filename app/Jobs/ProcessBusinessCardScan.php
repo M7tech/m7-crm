@@ -19,6 +19,10 @@ class ProcessBusinessCardScan implements ShouldBeUnique, ShouldQueue
 
     public int $tries = 3;
 
+    public int $timeout = 65;
+
+    public bool $failOnTimeout = true;
+
     /** @var array<int, int> */
     public array $backoff = [30, 300];
 
