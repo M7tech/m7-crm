@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::post('integrations/meta', [MetaIntegrationController::class, 'store'])->name('integrations.meta.store');
     Route::get('integrations/meta/callback', [MetaIntegrationController::class, 'callback'])->name('integrations.meta.callback');
     Route::put('integrations/meta/{integration}/configuration', [MetaIntegrationController::class, 'updateConfiguration'])->name('integrations.meta.configuration');
+    Route::put('integrations/meta/{integration}/routing', [MetaIntegrationController::class, 'updateRouting'])->name('integrations.meta.routing');
     Route::get('integrations/meta/{integration}/connect', [MetaIntegrationController::class, 'redirect'])->name('integrations.meta.redirect');
     Route::post('integrations/meta/{integration}/page', [MetaIntegrationController::class, 'selectPage'])->name('integrations.meta.page');
     Route::delete('integrations/meta/{integration}', [MetaIntegrationController::class, 'destroy'])->name('integrations.meta.destroy');

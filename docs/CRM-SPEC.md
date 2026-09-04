@@ -55,6 +55,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Company-admin connection setup inside the CRM, including encrypted Meta credentials and OAuth Page selection
 - Signed, idempotent Facebook Lead Ads webhooks processed by the queue
 - Configurable company, pipeline, stage, and owner destination for newly captured leads
+- One independently editable CRM destination per Facebook Page, with multiple Pages sharing the Meta app's single webhook callback
 
 ### 0.6–0.7 — Communication channels
 

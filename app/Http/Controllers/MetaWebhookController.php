@@ -38,6 +38,7 @@ class MetaWebhookController extends Controller
         abort_unless($signature !== '' && hash_equals($expected, $signature), 401, 'Invalid webhook signature.');
 
         $currentTenant->set($connection->tenant);
+        $webhookId = $this->webhookId($connection);
         $payload = $request->json()->all();
         $entries = $payload['entry'] ?? [];
         if (! is_array($entries)) {
@@ -49,7 +50,8 @@ class MetaWebhookController extends Controller
                 continue;
             }
 
-            if ((string) ($entry['id'] ?? '') !== (string) $connection->external_account_id) {
+            $pageConnection = $this->pageConnection($connection, $webhookId, (string) ($entry['id'] ?? ''));
+            if (! $pageConnection) {
                 continue;
             }
 
@@ -68,9 +70,9 @@ class MetaWebhookController extends Controller
                     continue;
                 }
 
-                DB::transaction(function () use ($connection, $value): void {
+                DB::transaction(function () use ($pageConnection, $value): void {
                     $event = WebhookEvent::firstOrCreate([
-                        'integration_id' => $connection->id,
+                        'integration_id' => $pageConnection->id,
                         'event_type' => 'leadgen',
                         'external_id' => (string) $value['leadgen_id'],
                     ], [
@@ -95,7 +97,31 @@ class MetaWebhookController extends Controller
 
         return Integration::query()
             ->where('provider', 'meta_lead_ads')
-            ->where('public_id', $publicId)
+            ->where(function ($query) use ($publicId): void {
+                $query->where('public_id', $publicId)
+                    ->orWhere('settings->webhook_id', $publicId);
+            })
             ->firstOrFail();
+    }
+
+    private function pageConnection(Integration $webhookConnection, string $webhookId, string $pageId): ?Integration
+    {
+        if ($pageId === '') {
+            return null;
+        }
+
+        $appId = (string) ($webhookConnection->credentials['app_id'] ?? '');
+
+        return Integration::query()
+            ->where('provider', 'meta_lead_ads')
+            ->where('external_account_id', $pageId)
+            ->get()
+            ->first(fn (Integration $candidate): bool => $this->webhookId($candidate) === $webhookId
+                && hash_equals($appId, (string) ($candidate->credentials['app_id'] ?? '')));
+    }
+
+    private function webhookId(Integration $integration): string
+    {
+        return (string) ($integration->settings['webhook_id'] ?? $integration->public_id);
     }
 }

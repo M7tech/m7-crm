@@ -120,6 +120,43 @@ class MetaLeadAdsTest extends TestCase
         $this->assertSame('987654321012345', $integration->refresh()->settings['configuration_id']);
     }
 
+    public function test_company_admin_can_update_the_destination_for_a_connected_page(): void
+    {
+        $integration = $this->integration();
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+        $company = Company::factory()->for($tenant)->create(['name' => 'Quarter Bath Iraq']);
+
+        $this->actingAs($admin)
+            ->put(route('integrations.meta.routing', $integration), [
+                'company_id' => $company->id,
+                'pipeline_id' => $integration->pipeline_id,
+                'stage_id' => $integration->stage_id,
+                'assigned_to_id' => $admin->id,
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('integrations.meta.index'));
+
+        $integration->refresh();
+        $this->assertSame($company->id, $integration->company_id);
+        $this->assertSame($admin->id, $integration->assigned_to_id);
+    }
+
+    public function test_another_tenant_cannot_update_a_page_destination(): void
+    {
+        $integration = $this->integration();
+        [$otherTenant, $otherCompany, $otherPipeline, $otherStage] = $this->destination();
+        $otherAdmin = User::factory()->for($otherTenant)->companyAdmin()->create();
+
+        $this->actingAs($otherAdmin)
+            ->put(route('integrations.meta.routing', $integration), [
+                'company_id' => $otherCompany->id,
+                'pipeline_id' => $otherPipeline->id,
+                'stage_id' => $otherStage->id,
+            ])
+            ->assertNotFound();
+    }
+
     public function test_another_tenant_cannot_update_a_meta_configuration(): void
     {
         $integration = $this->integration();
@@ -285,6 +322,50 @@ class MetaLeadAdsTest extends TestCase
         Queue::assertPushedTimes(ProcessMetaLeadWebhook::class, 1);
     }
 
+    public function test_connections_for_the_same_meta_app_share_one_webhook_and_events_route_by_page(): void
+    {
+        Queue::fake();
+        $primary = $this->integration();
+        $tenant = Tenant::query()->findOrFail($primary->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+        $company = Company::factory()->for($tenant)->create(['name' => 'AtlasPlast']);
+
+        $this->actingAs($admin)->post(route('integrations.meta.store'), [
+            'name' => 'AtlasPlast Facebook Page',
+            'app_id' => '123456789',
+            'app_secret' => 'app-secret-value-long-enough',
+            'configuration_id' => '111111111111111',
+            'graph_version' => 'v26.0',
+            'company_id' => $company->id,
+            'pipeline_id' => $primary->pipeline_id,
+            'stage_id' => $primary->stage_id,
+        ])->assertSessionHasNoErrors();
+
+        $secondary = Integration::query()->where('name', 'AtlasPlast Facebook Page')->sole();
+        $this->assertSame($primary->public_id, $secondary->settings['webhook_id']);
+        $this->assertSame($primary->settings['verify_token'], $secondary->settings['verify_token']);
+        $secondary->update([
+            'status' => 'active',
+            'external_account_id' => 'page-456',
+            'external_account_name' => 'AtlasPlast',
+        ]);
+
+        $payload = ['object' => 'page', 'entry' => [[
+            'id' => 'page-456',
+            'changes' => [['field' => 'leadgen', 'value' => ['leadgen_id' => 'lead-456', 'page_id' => 'page-456']]],
+        ]]];
+        $raw = json_encode($payload, JSON_THROW_ON_ERROR);
+        $server = ['HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $raw, $primary->credentials['app_secret']), 'CONTENT_TYPE' => 'application/json'];
+
+        $this->call('POST', route('webhooks.meta.receive', $primary->public_id), [], [], [], $server, $raw)->assertOk();
+
+        $this->assertDatabaseHas('webhook_events', [
+            'integration_id' => $secondary->id,
+            'external_id' => 'lead-456',
+        ]);
+        Queue::assertPushed(ProcessMetaLeadWebhook::class, fn (ProcessMetaLeadWebhook $job): bool => $job->tenantId === $tenant->id);
+    }
+
     public function test_invalid_webhook_signature_is_rejected(): void
     {
         $integration = $this->integration();
@@ -350,7 +431,7 @@ class MetaLeadAdsTest extends TestCase
             'provider' => 'meta_lead_ads',
             'name' => 'Test Meta',
             'status' => 'active',
-            'credentials' => ['app_id' => '123', 'app_secret' => 'app-secret', 'page_access_token' => 'page-token'],
+            'credentials' => ['app_id' => '123456789', 'app_secret' => 'app-secret-value-long-enough', 'page_access_token' => 'page-token'],
             'settings' => [
                 'graph_version' => 'v26.0',
                 'verify_token' => 'verify-token',

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMetaIntegrationRequest;
 use App\Http\Requests\UpdateMetaIntegrationConfigurationRequest;
+use App\Http\Requests\UpdateMetaIntegrationRoutingRequest;
 use App\Models\Company;
 use App\Models\Integration;
 use App\Models\Pipeline;
@@ -30,15 +31,18 @@ class MetaIntegrationController extends Controller
     public function store(StoreMetaIntegrationRequest $request): RedirectResponse
     {
         $data = $request->validated();
+        $publicId = (string) Str::uuid();
+        $webhook = $this->sharedWebhook($data['app_id'], $publicId);
         $integration = Integration::create([
-            'public_id' => (string) Str::uuid(),
+            'public_id' => $publicId,
             'provider' => 'meta_lead_ads',
             'name' => $data['name'],
             'status' => 'draft',
             'credentials' => ['app_id' => $data['app_id'], 'app_secret' => $data['app_secret']],
             'settings' => [
                 'graph_version' => $data['graph_version'],
-                'verify_token' => Str::random(48),
+                'verify_token' => $webhook['verify_token'],
+                'webhook_id' => $webhook['webhook_id'],
                 'configuration_id' => $data['configuration_id'],
             ],
             'company_id' => $data['company_id'],
@@ -48,6 +52,20 @@ class MetaIntegrationController extends Controller
         ]);
 
         return to_route('integrations.meta.index')->with('status', $integration->name.' was created. Configure its webhook, then connect Facebook.');
+    }
+
+    public function updateRouting(UpdateMetaIntegrationRoutingRequest $request, string $integration): RedirectResponse
+    {
+        $connection = $request->connection();
+        $data = $request->validated();
+        $connection->update([
+            'company_id' => $data['company_id'],
+            'pipeline_id' => $data['pipeline_id'],
+            'stage_id' => $data['stage_id'],
+            'assigned_to_id' => $data['assigned_to_id'] ?? null,
+        ]);
+
+        return to_route('integrations.meta.index')->with('status', 'Lead destination updated for '.($connection->external_account_name ?: $connection->name).'.');
     }
 
     public function updateConfiguration(UpdateMetaIntegrationConfigurationRequest $request, string $integration): RedirectResponse
@@ -195,5 +213,19 @@ class MetaIntegrationController extends Controller
     private function connection(string $publicId): Integration
     {
         return Integration::query()->where('public_id', $publicId)->firstOrFail();
+    }
+
+    /** @return array{webhook_id: string, verify_token: string} */
+    private function sharedWebhook(string $appId, string $fallbackId): array
+    {
+        $existing = Integration::query()
+            ->where('provider', 'meta_lead_ads')
+            ->get()
+            ->first(fn (Integration $candidate): bool => (string) ($candidate->credentials['app_id'] ?? '') === $appId);
+
+        return [
+            'webhook_id' => (string) ($existing?->settings['webhook_id'] ?? $existing?->public_id ?? $fallbackId),
+            'verify_token' => (string) ($existing?->settings['verify_token'] ?? Str::random(48)),
+        ];
     }
 }

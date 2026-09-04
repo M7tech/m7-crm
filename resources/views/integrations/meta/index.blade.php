@@ -90,6 +90,41 @@
                         </div>
 
                         <div class="mt-5 grid gap-4 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800/70">
+                            <details class="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
+                                <summary class="cursor-pointer font-medium text-zinc-900 dark:text-white">Lead destination for this Page</summary>
+                                <form method="POST" action="{{ route('integrations.meta.routing', $integration) }}" class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    @csrf
+                                    @method('PUT')
+                                    <div>
+                                        <label for="company_id_{{ $integration->public_id }}" class="mb-1 block font-medium">Destination company</label>
+                                        <select id="company_id_{{ $integration->public_id }}" name="company_id" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                                            @foreach ($companies as $company)<option value="{{ $company->id }}" @selected($integration->company_id === $company->id)>{{ $company->name }}</option>@endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="pipeline_id_{{ $integration->public_id }}" class="mb-1 block font-medium">Pipeline</label>
+                                        <select id="pipeline_id_{{ $integration->public_id }}" name="pipeline_id" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                                            @foreach ($pipelines as $pipeline)<option value="{{ $pipeline->id }}" @selected($integration->pipeline_id === $pipeline->id)>{{ $pipeline->name }}</option>@endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="stage_id_{{ $integration->public_id }}" class="mb-1 block font-medium">Starting stage</label>
+                                        <select id="stage_id_{{ $integration->public_id }}" name="stage_id" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                                            @foreach ($pipelines as $pipeline)<optgroup label="{{ $pipeline->name }}">@foreach ($pipeline->stages->where('type', 'open') as $stage)<option value="{{ $stage->id }}" @selected($integration->stage_id === $stage->id)>{{ $stage->name }}</option>@endforeach</optgroup>@endforeach
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label for="assigned_to_id_{{ $integration->public_id }}" class="mb-1 block font-medium">Default assignee</label>
+                                        <select id="assigned_to_id_{{ $integration->public_id }}" name="assigned_to_id" class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                                            <option value="">Unassigned</option>
+                                            @foreach ($members as $member)<option value="{{ $member->id }}" @selected($integration->assigned_to_id === $member->id)>{{ $member->name }}</option>@endforeach
+                                        </select>
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <flux:button type="submit" variant="primary">Save destination</flux:button>
+                                    </div>
+                                </form>
+                            </details>
                             <form id="configuration-{{ $integration->public_id }}" method="POST" action="{{ route('integrations.meta.configuration', $integration) }}" class="grid gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                                 @csrf
                                 @method('PUT')
@@ -102,7 +137,7 @@
                             </form>
                             <div>
                                 <p class="font-medium text-zinc-700 dark:text-zinc-300">Webhook callback URL</p>
-                                <code class="mt-1 block break-all text-xs text-zinc-600 dark:text-zinc-400">{{ route('webhooks.meta.verify', $integration->public_id) }}</code>
+                                <code class="mt-1 block break-all text-xs text-zinc-600 dark:text-zinc-400">{{ route('webhooks.meta.verify', $integration->settings['webhook_id'] ?? $integration->public_id) }}</code>
                             </div>
                             <div>
                                 <p class="font-medium text-zinc-700 dark:text-zinc-300">Webhook verify token</p>
