@@ -51,6 +51,8 @@ Meta Lead Ads credentials and access tokens are stored using Laravel's encrypted
 
 Facebook Messenger events reuse the signed Meta Page webhook. A valid message ID is recorded in `webhook_events` before queue dispatch, and the worker creates or finds a conversation using the integration, channel, and Page-scoped participant ID. Outbound replies are written with a queued status in the same transaction that dispatches delivery; the queue worker uses the encrypted Page token and records Meta's returned message ID. Both `conversations` and `messages` carry `tenant_id` directly and use the normal fail-closed tenant scope.
 
+Company administrators can queue a historical Messenger import for an active Page connection. The importer traverses Meta conversation and message cursors in bounded queue jobs, resolves each thread to its Page-scoped participant, and writes inbound and outbound messages transactionally. The existing unique conversation/message provider keys make repeated imports idempotent. Meta remains the authority on which historical conversations and message details are available.
+
 ## Planned tables
 
 The next milestones will add broader `activities`, `notes`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

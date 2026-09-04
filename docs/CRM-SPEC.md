@@ -59,7 +59,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 
 ### 0.6–0.7 — Communication channels
 
-- Facebook Messenger text messages in a tenant-isolated unified inbox, including signed/idempotent webhook ingestion and queued replies (complete)
+- Facebook Messenger text messages in a tenant-isolated unified inbox, including signed/idempotent webhook ingestion, queued replies, and paginated historical conversation import (complete)
 - Instagram professional messaging in the unified inbox
 - WhatsApp Cloud API and approved message templates
 

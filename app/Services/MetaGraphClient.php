@@ -116,6 +116,67 @@ class MetaGraphClient
         return $result['message_id'];
     }
 
+    /** @return array{data: array<int, array<string, mixed>>, after: ?string} */
+    public function conversations(Integration $integration, ?string $after = null): array
+    {
+        $parameters = [
+            'fields' => 'id,updated_time,participants.limit(10){id,name}',
+            'limit' => 25,
+        ];
+
+        if ($after !== null) {
+            $parameters['after'] = $after;
+        }
+
+        $result = $this->graph($integration)
+            ->withToken((string) $integration->credentials['page_access_token'])
+            ->get((string) $integration->external_account_id.'/conversations', $parameters)
+            ->throw()
+            ->json();
+
+        return $this->page($result);
+    }
+
+    /** @return array{data: array<int, array<string, mixed>>, after: ?string} */
+    public function conversationMessages(Integration $integration, string $conversationId, ?string $after = null): array
+    {
+        $messagesField = 'messages.limit(100)';
+        if ($after !== null && preg_match('/^[A-Za-z0-9_=\-]+$/', $after) !== 1) {
+            throw new UnexpectedValueException('Meta returned an invalid message cursor.');
+        }
+        if ($after !== null) {
+            $messagesField .= '.after('.$after.')';
+        }
+
+        $result = $this->graph($integration)
+            ->withToken((string) $integration->credentials['page_access_token'])
+            ->get($conversationId, [
+                'fields' => $messagesField.'{id,created_time,from,to,message}',
+            ])
+            ->throw()
+            ->json('messages');
+
+        return $this->page($result);
+    }
+
+    /**
+     * @param  mixed  $result
+     * @return array{data: array<int, array<string, mixed>>, after: ?string}
+     */
+    private function page(mixed $result): array
+    {
+        if (! is_array($result) || ! is_array($result['data'] ?? null)) {
+            throw new UnexpectedValueException('Meta returned an invalid paginated response.');
+        }
+
+        $data = array_values(array_filter($result['data'], 'is_array'));
+        $after = data_get($result, 'paging.next') && is_string(data_get($result, 'paging.cursors.after'))
+            ? data_get($result, 'paging.cursors.after')
+            : null;
+
+        return ['data' => $data, 'after' => $after];
+    }
+
     private function graph(Integration $integration): PendingRequest
     {
         return Http::baseUrl('https://graph.facebook.com/'.$integration->settings['graph_version'])

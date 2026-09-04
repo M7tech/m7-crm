@@ -53,6 +53,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::put('integrations/meta/{integration}/routing', [MetaIntegrationController::class, 'updateRouting'])->name('integrations.meta.routing');
     Route::get('integrations/meta/{integration}/connect', [MetaIntegrationController::class, 'redirect'])->name('integrations.meta.redirect');
     Route::post('integrations/meta/{integration}/page', [MetaIntegrationController::class, 'selectPage'])->name('integrations.meta.page');
+    Route::post('integrations/meta/{integration}/message-history', [MetaIntegrationController::class, 'syncMessageHistory'])->name('integrations.meta.message-history');
     Route::delete('integrations/meta/{integration}', [MetaIntegrationController::class, 'destroy'])->name('integrations.meta.destroy');
     Route::get('team', [TeamController::class, 'index'])->name('team.index');
     Route::post('team/invitations', [InvitationController::class, 'store'])->name('team.invitations.store');

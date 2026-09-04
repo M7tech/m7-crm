@@ -2,8 +2,11 @@
 
 namespace Tests\Feature\Inbox;
 
+use App\Enums\UserRole;
 use App\Jobs\ProcessMetaMessageWebhook;
 use App\Jobs\SendMetaMessage;
+use App\Jobs\SyncMetaConversationMessages;
+use App\Jobs\SyncMetaMessageHistory;
 use App\Models\Company;
 use App\Models\Conversation;
 use App\Models\Integration;
@@ -105,6 +108,89 @@ class MessengerInboxTest extends TestCase
         $message->refresh();
         $this->assertSame('sent', $message->status);
         $this->assertSame('outbound-123', $message->external_id);
+    }
+
+    public function test_company_admin_can_queue_message_history_but_manager_cannot(): void
+    {
+        Queue::fake();
+        $integration = $this->integration();
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+        $manager = User::factory()->for($tenant)->create(['role' => UserRole::SalesManager]);
+
+        $this->actingAs($manager)
+            ->post(route('integrations.meta.message-history', $integration))
+            ->assertForbidden();
+
+        $this->actingAs($admin)
+            ->post(route('integrations.meta.message-history', $integration))
+            ->assertRedirect(route('integrations.meta.index'))
+            ->assertSessionHasNoErrors();
+
+        Queue::assertPushed(SyncMetaMessageHistory::class, fn (SyncMetaMessageHistory $job): bool => $job->integrationId === $integration->id);
+        $this->assertNotNull($integration->refresh()->settings['message_history_requested_at'] ?? null);
+    }
+
+    public function test_history_sync_imports_inbound_and_outbound_messages_idempotently(): void
+    {
+        Queue::fake();
+        $integration = $this->integration();
+        Http::fake([
+            'graph.facebook.com/*/page-123/conversations*' => Http::response([
+                'data' => [[
+                    'id' => 'thread-123',
+                    'participants' => ['data' => [
+                        ['id' => 'page-123', 'name' => 'Quarter Bath Iraq'],
+                        ['id' => 'person-456', 'name' => 'Historic Customer'],
+                    ]],
+                ]],
+            ]),
+        ]);
+
+        (new SyncMetaMessageHistory($integration->id, $integration->tenant_id))
+            ->handle(app(MetaGraphClient::class), app(CurrentTenant::class));
+
+        Queue::assertPushed(SyncMetaConversationMessages::class, fn (SyncMetaConversationMessages $job): bool => $job->conversationId === 'thread-123'
+            && $job->participantId === 'person-456'
+            && $job->participantName === 'Historic Customer');
+
+        Http::fake([
+            'graph.facebook.com/*/thread-123*' => Http::response([
+                'messages' => ['data' => [
+                    [
+                        'id' => 'historic-inbound',
+                        'created_time' => '2026-08-01T10:00:00+0000',
+                        'from' => ['id' => 'person-456'],
+                        'to' => ['data' => [['id' => 'page-123']]],
+                        'message' => 'Old customer message',
+                    ],
+                    [
+                        'id' => 'historic-outbound',
+                        'created_time' => '2026-08-01T10:05:00+0000',
+                        'from' => ['id' => 'page-123'],
+                        'to' => ['data' => [['id' => 'person-456']]],
+                        'message' => 'Old Page reply',
+                    ],
+                ]],
+            ]),
+        ]);
+
+        $job = new SyncMetaConversationMessages(
+            $integration->id,
+            $integration->tenant_id,
+            'thread-123',
+            'person-456',
+            'Historic Customer',
+        );
+        $job->handle(app(MetaGraphClient::class), app(CurrentTenant::class));
+        $job->handle(app(MetaGraphClient::class), app(CurrentTenant::class));
+
+        $conversation = Conversation::query()->sole();
+        $this->assertSame('Historic Customer', $conversation->participant_name);
+        $this->assertSame($integration->company_id, $conversation->company_id);
+        $this->assertDatabaseCount('messages', 2);
+        $this->assertDatabaseHas('messages', ['external_id' => 'historic-inbound', 'direction' => 'inbound', 'status' => 'received']);
+        $this->assertDatabaseHas('messages', ['external_id' => 'historic-outbound', 'direction' => 'outbound', 'status' => 'sent']);
     }
 
     private function integration(): Integration

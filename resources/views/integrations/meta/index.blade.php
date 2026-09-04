@@ -79,6 +79,14 @@
                                 @else
                                     <a href="#configuration-{{ $integration->public_id }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900">Add Configuration ID</a>
                                 @endif
+                                @if ($integration->status === 'active')
+                                    @can('update', $integration)
+                                        <form method="POST" action="{{ route('integrations.meta.message-history', $integration) }}">
+                                            @csrf
+                                            <flux:button type="submit" variant="filled">Import message history</flux:button>
+                                        </form>
+                                    @endcan
+                                @endif
                                 @can('delete', $integration)
                                     <form method="POST" action="{{ route('integrations.meta.destroy', $integration) }}" onsubmit="return confirm('Delete this Meta connection and its webhook history?')">
                                         @csrf
@@ -90,6 +98,9 @@
                         </div>
 
                         <div class="mt-5 grid gap-4 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800/70">
+                            @if (filled($integration->settings['message_history_requested_at'] ?? null))
+                                <p class="text-xs text-zinc-500">Message history last requested {{ \Illuminate\Support\Carbon::parse($integration->settings['message_history_requested_at'])->diffForHumans() }}. Imports run in the background and are safe to repeat.</p>
+                            @endif
                             <details class="rounded-lg border border-zinc-200 bg-white p-3 dark:border-zinc-700 dark:bg-zinc-900">
                                 <summary class="cursor-pointer font-medium text-zinc-900 dark:text-white">Lead destination for this Page</summary>
                                 <form method="POST" action="{{ route('integrations.meta.routing', $integration) }}" class="mt-4 grid gap-3 sm:grid-cols-2">

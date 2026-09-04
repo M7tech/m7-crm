@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreMetaIntegrationRequest;
 use App\Http\Requests\UpdateMetaIntegrationConfigurationRequest;
 use App\Http\Requests\UpdateMetaIntegrationRoutingRequest;
+use App\Jobs\SyncMetaMessageHistory;
 use App\Models\Company;
 use App\Models\Integration;
 use App\Models\Pipeline;
@@ -201,6 +202,29 @@ class MetaIntegrationController extends Controller
         $integration->delete();
 
         return to_route('integrations.meta.index')->with('status', $name.' was deleted.');
+    }
+
+    public function syncMessageHistory(string $integration): RedirectResponse
+    {
+        $connection = $this->connection($integration);
+        $this->authorize('update', $connection);
+        abort_unless($connection->provider === 'meta_lead_ads', 404);
+
+        if ($connection->status !== 'active' || blank($connection->external_account_id) || blank($connection->credentials['page_access_token'] ?? null)) {
+            return to_route('integrations.meta.index')->withErrors([
+                'meta' => 'Connect the Facebook Page before importing its message history.',
+            ]);
+        }
+
+        $connection->update([
+            'settings' => [
+                ...$connection->settings,
+                'message_history_requested_at' => now()->toIso8601String(),
+            ],
+        ]);
+        SyncMetaMessageHistory::dispatch($connection->id, $connection->tenant_id);
+
+        return to_route('integrations.meta.index')->with('status', 'Messenger history import queued for '.$connection->external_account_name.'. Messages will appear progressively in the inbox.');
     }
 
     /** @return array<string, mixed> */
