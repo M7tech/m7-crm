@@ -22,6 +22,8 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `webhook_events` | Tenant | Idempotent provider event ledger, processing status, and retained payload metadata |
 | `conversations` | Tenant | Channel threads linked to an integration, CRM company, and optional contact |
 | `messages` | Tenant | Inbound and outbound channel messages with provider delivery state and retained payload metadata |
+| `automation_rules` | Tenant | Active or paused lead-stage rules that create follow-up tasks |
+| `automation_runs` | Tenant | Idempotent execution audit linking a rule and lead activity to its created task |
 | `sessions` | User | Web sessions |
 | `password_reset_tokens` | User | Password recovery |
 | `passkeys` | User | WebAuthn credentials |
@@ -53,6 +55,8 @@ Facebook Messenger events reuse the signed Meta Page webhook. A valid message ID
 
 Company administrators can queue a historical Messenger import for an active Page connection. The importer traverses Meta conversation and message cursors in bounded queue jobs, resolves each thread to its Page-scoped participant, and writes inbound and outbound messages transactionally. The existing unique conversation/message provider keys make repeated imports idempotent. Meta remains the authority on which historical conversations and message details are available.
 
+Automation rules are managed by company administrators and sales managers. The first bounded rule type listens to immutable lead creation and stage-change activities and queues a follow-up task when the lead enters the configured stage. A unique automation-rule and lead-activity pair makes job retries idempotent. Task creation, task activity creation, and successful run completion share one transaction; failed executions retain a bounded error for operational review. Deleting a rule is soft deletion so its historical runs remain attributable.
+
 ## Planned tables
 
-The next milestones will add broader `activities`, `notes`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.
+The next milestones will add broader `activities` and `notes`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

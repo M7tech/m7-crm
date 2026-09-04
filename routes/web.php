@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AutomationRuleController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactImportController;
@@ -46,6 +47,10 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::get('inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
     Route::post('inbox/{conversation}/messages', [InboxController::class, 'reply'])->name('inbox.reply');
     Route::get('reports', ReportController::class)->name('reports.index');
+    Route::get('automations', [AutomationRuleController::class, 'index'])->name('automations.index');
+    Route::post('automations', [AutomationRuleController::class, 'store'])->name('automations.store');
+    Route::put('automations/{automationRule}/status', [AutomationRuleController::class, 'updateStatus'])->name('automations.status');
+    Route::delete('automations/{automationRule}', [AutomationRuleController::class, 'destroy'])->name('automations.destroy');
     Route::get('integrations/meta', [MetaIntegrationController::class, 'index'])->name('integrations.meta.index');
     Route::post('integrations/meta', [MetaIntegrationController::class, 'store'])->name('integrations.meta.store');
     Route::get('integrations/meta/callback', [MetaIntegrationController::class, 'callback'])->name('integrations.meta.callback');

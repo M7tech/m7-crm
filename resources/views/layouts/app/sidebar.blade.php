@@ -35,6 +35,11 @@
                             {{ __('Reports') }}
                         </flux:sidebar.item>
                     @endcan
+                    @can('viewAny', \App\Models\AutomationRule::class)
+                        <flux:sidebar.item icon="bolt" :href="route('automations.index')" :current="request()->routeIs('automations.*')" wire:navigate>
+                            {{ __('Automations') }}
+                        </flux:sidebar.item>
+                    @endcan
                     @can('create', \App\Models\Integration::class)
                         <flux:sidebar.item icon="link" :href="route('integrations.meta.index')" :current="request()->routeIs('integrations.*')" wire:navigate>
                             {{ __('Integrations') }}

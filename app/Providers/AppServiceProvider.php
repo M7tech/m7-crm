@@ -3,7 +3,9 @@
 namespace App\Providers;
 
 use App\Enums\UserRole;
+use App\Models\LeadActivity;
 use App\Models\User;
+use App\Observers\LeadActivityObserver;
 use App\Support\CurrentTenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
@@ -28,6 +30,8 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        LeadActivity::observe(LeadActivityObserver::class);
+
         if ($this->app->isProduction()) {
             URL::forceScheme('https');
         }

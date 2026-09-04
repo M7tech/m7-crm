@@ -103,7 +103,12 @@ class ProcessMetaLeadWebhook implements ShouldQueue
                 'actor_id' => null,
                 'type' => 'created',
                 'description' => 'Lead created from Meta Lead Ads.',
-                'metadata' => ['provider' => 'meta_lead_ads', 'external_lead_id' => $event->external_id, 'webhook_event_id' => $event->id],
+                'metadata' => [
+                    'provider' => 'meta_lead_ads',
+                    'external_lead_id' => $event->external_id,
+                    'webhook_event_id' => $event->id,
+                    'stage_id' => $lead->stage_id,
+                ],
             ]);
             $locked->update(['status' => 'processed', 'processed_at' => now(), 'error' => null]);
         });
