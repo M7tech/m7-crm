@@ -23,6 +23,8 @@ FROM dunglas/frankenphp:1-php8.4-alpine
 
 RUN install-php-extensions pdo_pgsql redis pcntl intl zip opcache
 
+COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
+
 WORKDIR /app
 COPY --from=vendor /app /app
 COPY --from=assets /app/public/build /app/public/build

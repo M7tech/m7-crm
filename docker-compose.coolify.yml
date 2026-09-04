@@ -22,6 +22,8 @@ x-app-environment: &app-environment
   REDIS_CLIENT: phpredis
   REDIS_HOST: redis
   REDIS_PORT: 6379
+  OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+  OPENAI_BUSINESS_CARD_MODEL: ${OPENAI_BUSINESS_CARD_MODEL:-gpt-5.6-luna}
   MAIL_MAILER: ${MAIL_MAILER:-smtp}
   MAIL_HOST: ${MAIL_HOST}
   MAIL_PORT: ${MAIL_PORT:-587}
@@ -45,6 +47,8 @@ services:
         condition: service_healthy
     ports:
       - "80"
+    volumes:
+      - private_storage:/app/storage/app/private
 
   worker:
     build:
@@ -53,6 +57,8 @@ services:
     restart: unless-stopped
     environment: *app-environment
     command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+    volumes:
+      - private_storage:/app/storage/app/private
     depends_on:
       postgres:
         condition: service_healthy
@@ -66,6 +72,8 @@ services:
     restart: unless-stopped
     environment: *app-environment
     command: ["php", "artisan", "schedule:work"]
+    volumes:
+      - private_storage:/app/storage/app/private
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,3 +110,4 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  private_storage:

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AutomationRuleController;
+use App\Http\Controllers\BusinessCardScanController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\ContactController;
 use App\Http\Controllers\ContactImportController;
@@ -37,6 +38,13 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::get('contacts/import', [ContactImportController::class, 'create'])->name('contacts.import.create');
     Route::post('contacts/import/preview', [ContactImportController::class, 'preview'])->name('contacts.import.preview');
     Route::post('contacts/import', [ContactImportController::class, 'store'])->name('contacts.import.store');
+    Route::get('contacts/business-cards/create', [BusinessCardScanController::class, 'create'])->name('contacts.business-cards.create');
+    Route::post('contacts/business-cards', [BusinessCardScanController::class, 'store'])->name('contacts.business-cards.store');
+    Route::get('contacts/business-cards/{businessCardScan}', [BusinessCardScanController::class, 'show'])->name('contacts.business-cards.show');
+    Route::get('contacts/business-cards/{businessCardScan}/image', [BusinessCardScanController::class, 'image'])->name('contacts.business-cards.image');
+    Route::post('contacts/business-cards/{businessCardScan}/contact', [BusinessCardScanController::class, 'save'])->name('contacts.business-cards.save');
+    Route::post('contacts/business-cards/{businessCardScan}/retry', [BusinessCardScanController::class, 'retry'])->name('contacts.business-cards.retry');
+    Route::delete('contacts/business-cards/{businessCardScan}', [BusinessCardScanController::class, 'destroy'])->name('contacts.business-cards.destroy');
     Route::resource('contacts', ContactController::class)->except(['create']);
     Route::get('pipeline-settings', [PipelineController::class, 'index'])->name('pipelines.index');
     Route::post('pipeline-settings', [PipelineController::class, 'store'])->name('pipelines.store');

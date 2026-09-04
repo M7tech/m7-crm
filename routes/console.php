@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 Schedule::command('tasks:send-reminders')->everyMinute()->withoutOverlapping();
 Schedule::command('system:heartbeat')->everyMinute()->withoutOverlapping();
+Schedule::command('business-cards:purge-expired')->hourly()->withoutOverlapping();

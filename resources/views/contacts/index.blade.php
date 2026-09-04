@@ -6,9 +6,14 @@
                 <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Contacts</h1>
                 <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">People connected to customer companies in your workspace.</p>
             </div>
-            @can('create', \App\Models\ContactImport::class)
-                <flux:button :href="route('contacts.import.create')" icon="arrow-up-tray" wire:navigate>Import CSV</flux:button>
-            @endcan
+            <div class="flex flex-wrap gap-2">
+                @can('create', \App\Models\BusinessCardScan::class)
+                    <flux:button :href="route('contacts.business-cards.create')" icon="camera" variant="primary" wire:navigate>Scan business card</flux:button>
+                @endcan
+                @can('create', \App\Models\ContactImport::class)
+                    <flux:button :href="route('contacts.import.create')" icon="arrow-up-tray" wire:navigate>Import CSV</flux:button>
+                @endcan
+            </div>
         </div>
 
         @if (session('status'))

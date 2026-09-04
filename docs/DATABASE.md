@@ -12,6 +12,7 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `contacts` | Tenant | People linked to CRM customer companies |
 | `invitations` | Tenant | Expiring, single-use invitations for workspace team members |
 | `contact_imports` | Tenant | Audit summaries for previewed and completed contact CSV imports |
+| `business_card_scans` | Tenant | Short-lived private card images and reviewed multilingual contact extraction state |
 | `pipelines` | Tenant | Named sales processes, including the default pipeline |
 | `pipeline_stages` | Tenant | Ordered open, won, and lost stages within a pipeline |
 | `leads` | Tenant | Sales opportunities linked to companies, contacts, owners, and stages |
@@ -41,6 +42,8 @@ The `contacts` table carries both `tenant_id` and `company_id`. Contact form val
 The `invitations` table stores only a SHA-256 hash of each 384-bit random acceptance token. Invitations expire after seven days and record acceptance. Guest token acceptance is the documented exception to ordinary tenant-scoped lookup: the high-entropy token authorizes only its matching unexpired invitation, and user creation plus acceptance are committed in one transaction.
 
 The `contact_imports` table records the source filename, importer, selected duplicate strategy, row counts, validation failures, and completion time. Preview rows are retained in tenant/user-bound cache for 30 minutes and are never stored in the audit table. Import execution locks the audit record and writes contacts in one transaction to prevent replay or partial imports.
+
+Business-card scans are uploaded to tenant-partitioned private storage and processed only by a queued worker. The vision request disables provider-side response storage and returns schema-constrained fields for human review; model output is never written directly to `contacts`. The final save validates the selected company and every contact field again, then creates the contact and marks the scan saved in one transaction. Card images are deleted immediately after a successful save, while every unsaved scan and its private image expires after 24 hours. App, worker, and scheduler containers share only the private storage volume required for this workflow.
 
 Every tenant receives a default sales pipeline with New, Qualified, Proposal, Won, and Lost stages. Additional pipelines can define one to ten ordered open stages; terminal Won and Lost stages are created automatically. Lead validation requires the company, optional contact, pipeline, stage, and optional assignee to belong to the active tenant. It also verifies that a contact belongs to the selected company and a stage belongs to the selected pipeline.
 

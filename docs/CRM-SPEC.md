@@ -37,6 +37,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Company-admin user invitations with expiring single-use links (complete)
 - User activation/deactivation and role changes (complete)
 - CSV import with preview, validation, duplicate handling, and audit record (complete)
+- Private business-card scanning with queued Arabic, English, Kurdish Sorani, and Kurdish Kurmanji extraction plus human review (complete)
 
 ### 0.3 — Leads and pipeline (complete)
 

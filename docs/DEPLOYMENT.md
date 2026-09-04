@@ -26,3 +26,9 @@ Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL
 Meta App IDs, secrets, and Page access tokens are managed from **CRM → Integrations → Meta Lead Ads** and stored encrypted in the database; they are not Coolify environment variables. A company admin creates the connection, copies the OAuth redirect URI and Page webhook callback/verify token shown by the CRM into the Meta developer app, and subscribes the `leadgen` webhook field. In **Facebook Login for Business → Configurations**, create a user-access-token configuration for Pages with `pages_show_list`, `pages_manage_metadata`, `pages_read_engagement`, and `leads_retrieval`, then save its Configuration ID in the CRM before using **Connect Facebook** to authorize and choose a Page.
 
 Keep the queue worker running: signed webhook deliveries are accepted immediately and the worker retrieves the submitted lead details from Meta before creating the CRM contact, lead, and activity.
+
+## Business-card scanner
+
+Add an OpenAI project API key as `OPENAI_API_KEY` in Coolify. The optional `OPENAI_BUSINESS_CARD_MODEL` defaults to `gpt-5.6-luna`. Redeploy all Compose services after adding the variables, then run `php artisan migrate --force` in the app container. The app, worker, and scheduler services mount the same `private_storage` volume so a private image uploaded by the web container can be read by the queued scanner and purged after use.
+
+Confirm the queue worker and scheduler remain running. Scan one test card from **Contacts → Scan business card**, review the extracted fields, save it, and verify that the new contact belongs to the selected CRM company.
