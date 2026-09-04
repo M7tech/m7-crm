@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreInvitationRequest;
 use App\Models\Invitation;
+use App\Models\Tenant;
 use App\Notifications\TeamInvitationNotification;
+use App\Services\PlanEntitlements;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -12,11 +14,13 @@ use Illuminate\Support\Str;
 
 class InvitationController extends Controller
 {
-    public function store(StoreInvitationRequest $request): RedirectResponse
+    public function store(StoreInvitationRequest $request, PlanEntitlements $plans): RedirectResponse
     {
         $token = Str::random(64);
 
-        $invitation = DB::transaction(function () use ($request, $token): Invitation {
+        $invitation = DB::transaction(function () use ($request, $token, $plans): Invitation {
+            $tenant = Tenant::query()->lockForUpdate()->findOrFail($request->user()->tenant_id);
+            $plans->assertCapacity($tenant, 'members', 'email', $request->validated('email'));
             Invitation::query()
                 ->where('email', $request->validated('email'))
                 ->whereNull('accepted_at')

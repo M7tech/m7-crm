@@ -9,11 +9,14 @@ use App\Jobs\SyncMetaMessageHistory;
 use App\Models\Company;
 use App\Models\Integration;
 use App\Models\Pipeline;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Services\MetaGraphClient;
+use App\Services\PlanEntitlements;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 
@@ -29,28 +32,33 @@ class MetaIntegrationController extends Controller
         ]);
     }
 
-    public function store(StoreMetaIntegrationRequest $request): RedirectResponse
+    public function store(StoreMetaIntegrationRequest $request, PlanEntitlements $plans): RedirectResponse
     {
         $data = $request->validated();
-        $publicId = (string) Str::uuid();
-        $webhook = $this->sharedWebhook($data['app_id'], $publicId);
-        $integration = Integration::create([
-            'public_id' => $publicId,
-            'provider' => 'meta_lead_ads',
-            'name' => $data['name'],
-            'status' => 'draft',
-            'credentials' => ['app_id' => $data['app_id'], 'app_secret' => $data['app_secret']],
-            'settings' => [
-                'graph_version' => $data['graph_version'],
-                'verify_token' => $webhook['verify_token'],
-                'webhook_id' => $webhook['webhook_id'],
-                'configuration_id' => $data['configuration_id'],
-            ],
-            'company_id' => $data['company_id'],
-            'pipeline_id' => $data['pipeline_id'],
-            'stage_id' => $data['stage_id'],
-            'assigned_to_id' => $data['assigned_to_id'] ?? null,
-        ]);
+        $integration = DB::transaction(function () use ($request, $data, $plans): Integration {
+            $tenant = Tenant::query()->lockForUpdate()->findOrFail($request->user()->tenant_id);
+            $plans->assertCapacity($tenant, 'meta_connections', 'name');
+            $publicId = (string) Str::uuid();
+            $webhook = $this->sharedWebhook($data['app_id'], $publicId);
+
+            return Integration::create([
+                'public_id' => $publicId,
+                'provider' => 'meta_lead_ads',
+                'name' => $data['name'],
+                'status' => 'draft',
+                'credentials' => ['app_id' => $data['app_id'], 'app_secret' => $data['app_secret']],
+                'settings' => [
+                    'graph_version' => $data['graph_version'],
+                    'verify_token' => $webhook['verify_token'],
+                    'webhook_id' => $webhook['webhook_id'],
+                    'configuration_id' => $data['configuration_id'],
+                ],
+                'company_id' => $data['company_id'],
+                'pipeline_id' => $data['pipeline_id'],
+                'stage_id' => $data['stage_id'],
+                'assigned_to_id' => $data['assigned_to_id'] ?? null,
+            ]);
+        });
 
         return to_route('integrations.meta.index')->with('status', $integration->name.' was created. Configure its webhook, then connect Facebook.');
     }

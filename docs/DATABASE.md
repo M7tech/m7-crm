@@ -57,6 +57,8 @@ Company administrators can queue a historical Messenger import for an active Pag
 
 Automation rules are managed by company administrators and sales managers. The first bounded rule type listens to immutable lead creation and stage-change activities and queues a follow-up task when the lead enters the configured stage. A unique automation-rule and lead-activity pair makes job retries idempotent. Task creation, task activity creation, and successful run completion share one transaction; failed executions retain a bounded error for operational review. Deleting a rule is soft deletion so its historical runs remain attributable.
 
+The tenant `status` is enforced on every tenant workspace request; suspended tenants cannot access CRM data. The tenant `plan` resolves through `config/plans.php`, which centrally defines creation limits for active team seats (including pending invitations), customer companies, automation rules, and Meta Page connections. Limit checks always calculate usage for the authenticated tenant, never from request input. Reaching a limit blocks only additional creation and never removes or hides existing customer data. Company administrators see the same plan usage plus a five-step onboarding checklist on the dashboard.
+
 ## Planned tables
 
 The next milestones will add broader `activities` and `notes`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

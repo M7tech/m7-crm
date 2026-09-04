@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Models\Integration;
 use App\Models\PipelineStage;
+use App\Services\PlanEntitlements;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -40,6 +41,12 @@ class StoreMetaIntegrationRequest extends FormRequest
             $stage = PipelineStage::query()->find($this->integer('stage_id'));
             if ($stage && $stage->pipeline_id !== $this->integer('pipeline_id')) {
                 $validator->errors()->add('stage_id', 'The selected stage does not belong to this pipeline.');
+            }
+
+            $tenant = $this->user()?->tenant;
+            $plans = app(PlanEntitlements::class);
+            if ($tenant && ! $plans->hasCapacity($tenant, 'meta_connections')) {
+                $validator->errors()->add('name', $plans->limitMessage($tenant, 'meta_connections'));
             }
         }];
     }

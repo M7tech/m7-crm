@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\AutomationRule;
+use App\Services\PlanEntitlements;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -33,8 +34,10 @@ class StoreAutomationRuleRequest extends FormRequest
     public function after(): array
     {
         return [function (Validator $validator): void {
-            if (AutomationRule::query()->count() >= 25) {
-                $validator->errors()->add('name', 'This workspace has reached the limit of 25 automation rules.');
+            $tenant = $this->user()?->tenant;
+            $plans = app(PlanEntitlements::class);
+            if ($tenant && ! $plans->hasCapacity($tenant, 'automation_rules')) {
+                $validator->errors()->add('name', $plans->limitMessage($tenant, 'automation_rules'));
             }
         }];
     }

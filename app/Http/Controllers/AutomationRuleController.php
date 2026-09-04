@@ -7,8 +7,11 @@ use App\Http\Requests\UpdateAutomationRuleStatusRequest;
 use App\Models\AutomationRule;
 use App\Models\AutomationRun;
 use App\Models\Pipeline;
+use App\Models\Tenant;
+use App\Services\PlanEntitlements;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class AutomationRuleController extends Controller
 {
@@ -23,15 +26,19 @@ class AutomationRuleController extends Controller
         ]);
     }
 
-    public function store(StoreAutomationRuleRequest $request): RedirectResponse
+    public function store(StoreAutomationRuleRequest $request, PlanEntitlements $plans): RedirectResponse
     {
-        AutomationRule::create([
-            ...$request->validated(),
-            'created_by_id' => $request->user()->id,
-            'trigger_type' => 'lead_entered_stage',
-            'action_type' => 'create_task',
-            'is_active' => true,
-        ]);
+        DB::transaction(function () use ($request, $plans): void {
+            $tenant = Tenant::query()->lockForUpdate()->findOrFail($request->user()->tenant_id);
+            $plans->assertCapacity($tenant, 'automation_rules', 'name');
+            AutomationRule::create([
+                ...$request->validated(),
+                'created_by_id' => $request->user()->id,
+                'trigger_type' => 'lead_entered_stage',
+                'action_type' => 'create_task',
+                'is_active' => true,
+            ]);
+        });
 
         return to_route('automations.index')->with('status', 'Automation rule created.');
     }

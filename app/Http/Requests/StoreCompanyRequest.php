@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\Company;
+use App\Services\PlanEntitlements;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Validator;
 
 class StoreCompanyRequest extends FormRequest
 {
@@ -22,5 +24,17 @@ class StoreCompanyRequest extends FormRequest
             'city' => ['nullable', 'string', 'max:100'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];
+    }
+
+    /** @return array<int, callable> */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $tenant = $this->user()?->tenant;
+            $plans = app(PlanEntitlements::class);
+            if ($tenant && ! $plans->hasCapacity($tenant, 'companies')) {
+                $validator->errors()->add('name', $plans->limitMessage($tenant, 'companies'));
+            }
+        }];
     }
 }

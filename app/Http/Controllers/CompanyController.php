@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreCompanyRequest;
 use App\Models\Company;
+use App\Models\Tenant;
+use App\Services\PlanEntitlements;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\DB;
 
 class CompanyController extends Controller
 {
@@ -18,9 +21,13 @@ class CompanyController extends Controller
         ]);
     }
 
-    public function store(StoreCompanyRequest $request): RedirectResponse
+    public function store(StoreCompanyRequest $request, PlanEntitlements $plans): RedirectResponse
     {
-        Company::create($request->validated());
+        DB::transaction(function () use ($request, $plans): void {
+            $tenant = Tenant::query()->lockForUpdate()->findOrFail($request->user()->tenant_id);
+            $plans->assertCapacity($tenant, 'companies', 'name');
+            Company::create($request->validated());
+        });
 
         return to_route('companies.index')->with('status', 'Company added successfully.');
     }

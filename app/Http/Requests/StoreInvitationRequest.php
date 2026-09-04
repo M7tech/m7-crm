@@ -4,8 +4,10 @@ namespace App\Http\Requests;
 
 use App\Enums\UserRole;
 use App\Models\Invitation;
+use App\Services\PlanEntitlements;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 
 class StoreInvitationRequest extends FormRequest
 {
@@ -30,5 +32,17 @@ class StoreInvitationRequest extends FormRequest
                 UserRole::Salesperson,
             ])],
         ];
+    }
+
+    /** @return array<int, callable> */
+    public function after(): array
+    {
+        return [function (Validator $validator): void {
+            $tenant = $this->user()?->tenant;
+            $plans = app(PlanEntitlements::class);
+            if ($tenant && ! $plans->hasCapacity($tenant, 'members', $this->string('email')->value())) {
+                $validator->errors()->add('email', $plans->limitMessage($tenant, 'members'));
+            }
+        }];
     }
 }
