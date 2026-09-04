@@ -166,7 +166,7 @@ class MetaIntegrationController extends Controller
         );
 
         try {
-            $client->subscribePage($integration, (string) $page['id'], (string) $page['access_token']);
+            $messengerEnabled = $client->subscribePage($integration, (string) $page['id'], (string) $page['access_token']);
         } catch (\Throwable) {
             return to_route('integrations.meta.index')->withErrors([
                 'meta' => 'Meta returned the Page but refused its leadgen webhook subscription. Add pages_manage_metadata and leads_retrieval to the Business Login configuration, save it, then reconnect Facebook.',
@@ -185,7 +185,12 @@ class MetaIntegrationController extends Controller
             'connected_at' => now(),
         ]);
 
-        return to_route('integrations.meta.index')->with('status', $page['name'].' is connected to Meta Lead Ads.');
+        $status = $page['name'].' is connected to Meta Lead Ads.';
+        if (! $messengerEnabled) {
+            $status .= ' Add pages_messaging to the Business Login configuration and reconnect to enable the inbox.';
+        }
+
+        return to_route('integrations.meta.index')->with('status', $status);
     }
 
     public function destroy(string $integration): RedirectResponse

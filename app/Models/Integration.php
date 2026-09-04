@@ -52,4 +52,10 @@ class Integration extends Model
     {
         return $this->hasMany(WebhookEvent::class);
     }
+
+    /** @return HasMany<Conversation, $this> */
+    public function conversations(): HasMany
+    {
+        return $this->hasMany(Conversation::class);
+    }
 }

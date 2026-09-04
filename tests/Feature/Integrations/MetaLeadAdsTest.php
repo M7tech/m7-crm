@@ -221,6 +221,38 @@ class MetaLeadAdsTest extends TestCase
         $this->assertNull($integration->refresh()->external_account_id);
     }
 
+    public function test_page_can_connect_for_leads_when_messenger_permission_is_not_ready(): void
+    {
+        $integration = $this->integration();
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+        Http::fake([
+            'graph.facebook.com/*/page-789/subscribed_apps' => Http::sequence()
+                ->push(['error' => ['message' => 'Missing pages_messaging']], 400)
+                ->push(['success' => true]),
+        ]);
+
+        $this->actingAs($admin)
+            ->withSession(['meta_page_selection.valid-selection' => [
+                'integration_id' => $integration->id,
+                'user_id' => $admin->id,
+                'user_token' => 'long-user-token',
+                'pages' => [[
+                    'id' => 'page-789',
+                    'name' => 'AtlasPlast',
+                    'access_token' => 'page-access-token',
+                ]],
+            ]])
+            ->post(route('integrations.meta.page', $integration), [
+                'selection' => 'valid-selection',
+                'page_id' => 'page-789',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('status', fn (string $status): bool => str_contains($status, 'pages_messaging'));
+
+        $this->assertSame('active', $integration->refresh()->status);
+    }
+
     public function test_company_admin_can_delete_an_obsolete_meta_connection(): void
     {
         $integration = $this->integration();

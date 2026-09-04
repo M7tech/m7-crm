@@ -20,6 +20,8 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `task_activities` | Tenant | Immutable audit trail for task creation, edits, completion, and reopening |
 | `integrations` | Tenant | Encrypted provider credentials, external account details, and CRM routing configuration |
 | `webhook_events` | Tenant | Idempotent provider event ledger, processing status, and retained payload metadata |
+| `conversations` | Tenant | Channel threads linked to an integration, CRM company, and optional contact |
+| `messages` | Tenant | Inbound and outbound channel messages with provider delivery state and retained payload metadata |
 | `sessions` | User | Web sessions |
 | `password_reset_tokens` | User | Password recovery |
 | `passkeys` | User | WebAuthn credentials |
@@ -47,6 +49,8 @@ Meta Lead Ads credentials and access tokens are stored using Laravel's encrypted
 
 `webhook_events` has a unique integration, event-type, and external-ID key. Incoming requests create the ledger record and enqueue processing in one transaction. The worker locks the ledger row before creating a contact, lead, and immutable lead activity, so webhook retries do not create duplicate opportunities.
 
+Facebook Messenger events reuse the signed Meta Page webhook. A valid message ID is recorded in `webhook_events` before queue dispatch, and the worker creates or finds a conversation using the integration, channel, and Page-scoped participant ID. Outbound replies are written with a queued status in the same transaction that dispatches delivery; the queue worker uses the encrypted Page token and records Meta's returned message ID. Both `conversations` and `messages` carry `tenant_id` directly and use the normal fail-closed tenant scope.
+
 ## Planned tables
 
-The next milestones will add broader `activities`, `notes`, `conversations`, `messages`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.
+The next milestones will add broader `activities`, `notes`, and `automation_runs`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

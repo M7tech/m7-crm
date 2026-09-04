@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Jobs\ProcessMetaLeadWebhook;
+use App\Jobs\ProcessMetaMessageWebhook;
 use App\Models\Integration;
 use App\Models\WebhookEvent;
 use App\Support\CurrentTenant;
@@ -53,6 +54,35 @@ class MetaWebhookController extends Controller
             $pageConnection = $this->pageConnection($connection, $webhookId, (string) ($entry['id'] ?? ''));
             if (! $pageConnection) {
                 continue;
+            }
+
+            $messagingEvents = $entry['messaging'] ?? [];
+            if (is_array($messagingEvents)) {
+                foreach ($messagingEvents as $messagingEvent) {
+                    if (! is_array($messagingEvent)
+                        || ! is_string(data_get($messagingEvent, 'message.mid'))
+                        || ! is_string(data_get($messagingEvent, 'sender.id'))
+                        || data_get($messagingEvent, 'message.is_echo') === true
+                        || data_get($messagingEvent, 'sender.id') === $pageConnection->external_account_id) {
+                        continue;
+                    }
+
+                    DB::transaction(function () use ($pageConnection, $messagingEvent): void {
+                        $event = WebhookEvent::firstOrCreate([
+                            'integration_id' => $pageConnection->id,
+                            'event_type' => 'messenger_message',
+                            'external_id' => (string) data_get($messagingEvent, 'message.mid'),
+                        ], [
+                            'provider' => 'meta_messenger',
+                            'payload' => $messagingEvent,
+                            'status' => 'pending',
+                        ]);
+
+                        if ($event->wasRecentlyCreated) {
+                            ProcessMetaMessageWebhook::dispatch($event->id, $event->tenant_id)->afterCommit();
+                        }
+                    });
+                }
             }
 
             $changes = $entry['changes'] ?? [];

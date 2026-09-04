@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Integration;
 use Illuminate\Http\Client\PendingRequest;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use UnexpectedValueException;
 
@@ -63,13 +64,25 @@ class MetaGraphClient
         ));
     }
 
-    public function subscribePage(Integration $integration, string $pageId, string $pageToken): void
+    public function subscribePage(Integration $integration, string $pageId, string $pageToken): bool
     {
-        $this->graph($integration)
-            ->asForm()
-            ->withToken($pageToken)
-            ->post($pageId.'/subscribed_apps', ['subscribed_fields' => 'leadgen'])
-            ->throw();
+        try {
+            $this->graph($integration)
+                ->asForm()
+                ->withToken($pageToken)
+                ->post($pageId.'/subscribed_apps', ['subscribed_fields' => 'leadgen,messages'])
+                ->throw();
+
+            return true;
+        } catch (RequestException) {
+            $this->graph($integration)
+                ->asForm()
+                ->withToken($pageToken)
+                ->post($pageId.'/subscribed_apps', ['subscribed_fields' => 'leadgen'])
+                ->throw();
+
+            return false;
+        }
     }
 
     /** @return array<string, mixed> */
@@ -84,6 +97,23 @@ class MetaGraphClient
         }
 
         return $lead;
+    }
+
+    public function sendMessage(Integration $integration, string $recipientId, string $body): string
+    {
+        $result = $this->graph($integration)
+            ->withToken((string) $integration->credentials['page_access_token'])
+            ->post((string) $integration->external_account_id.'/messages', [
+                'recipient' => ['id' => $recipientId],
+                'messaging_type' => 'RESPONSE',
+                'message' => ['text' => $body],
+            ])->throw()->json();
+
+        if (! is_array($result) || ! is_string($result['message_id'] ?? null)) {
+            throw new UnexpectedValueException('Meta did not return a Messenger message ID.');
+        }
+
+        return $result['message_id'];
     }
 
     private function graph(Integration $integration): PendingRequest

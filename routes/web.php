@@ -6,6 +6,7 @@ use App\Http\Controllers\ContactImportController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\InboxController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStageController;
 use App\Http\Controllers\MetaIntegrationController;
@@ -41,6 +42,9 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::resource('leads', LeadController::class)->except(['destroy']);
     Route::put('tasks/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status.update');
     Route::resource('tasks', TaskController::class)->except(['destroy']);
+    Route::get('inbox', [InboxController::class, 'index'])->name('inbox.index');
+    Route::get('inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
+    Route::post('inbox/{conversation}/messages', [InboxController::class, 'reply'])->name('inbox.reply');
     Route::get('reports', ReportController::class)->name('reports.index');
     Route::get('integrations/meta', [MetaIntegrationController::class, 'index'])->name('integrations.meta.index');
     Route::post('integrations/meta', [MetaIntegrationController::class, 'store'])->name('integrations.meta.store');

@@ -27,6 +27,9 @@
                     <flux:sidebar.item icon="check-circle" :href="route('tasks.index')" :current="request()->routeIs('tasks.*')" wire:navigate>
                         {{ __('Tasks') }}
                     </flux:sidebar.item>
+                    <flux:sidebar.item icon="chat-bubble-left-right" :href="route('inbox.index')" :current="request()->routeIs('inbox.*')" wire:navigate>
+                        {{ __('Inbox') }}
+                    </flux:sidebar.item>
                     @can('viewReports')
                         <flux:sidebar.item icon="chart-bar" :href="route('reports.index')" :current="request()->routeIs('reports.*')" wire:navigate>
                             {{ __('Reports') }}

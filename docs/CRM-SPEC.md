@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: milestone 0.5 Facebook Lead Ads integration complete; controlled customer pilots are next
+Status: milestone 0.6 communication channels in progress; Facebook Messenger inbox foundation complete
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -59,8 +59,8 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 
 ### 0.6–0.7 — Communication channels
 
-- Facebook Messenger and Instagram professional messaging
-- Unified inbox
+- Facebook Messenger text messages in a tenant-isolated unified inbox, including signed/idempotent webhook ingestion and queued replies (complete)
+- Instagram professional messaging in the unified inbox
 - WhatsApp Cloud API and approved message templates
 
 ### 0.8–1.0 — Automation and sellable release
