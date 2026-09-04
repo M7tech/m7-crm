@@ -39,7 +39,7 @@
                 <li class="bg-white p-5 dark:bg-zinc-900">
                     <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">3</span>
                     <h3 class="mt-3 font-medium text-zinc-950 dark:text-white">Configure Meta</h3>
-                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Add the shown OAuth redirect URI. Configure a <strong>Page</strong> webhook with the shown callback and token, then subscribe to <code>leadgen</code>.</p>
+                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Add the shown OAuth URI, create a Facebook Login for Business configuration, and save its Configuration ID here. Then configure the <strong>Page</strong> webhook and subscribe to <code>leadgen</code>.</p>
                 </li>
                 <li class="bg-white p-5 dark:bg-zinc-900">
                     <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">4</span>
@@ -73,10 +73,24 @@
                                 </div>
                                 <p class="mt-1 text-sm text-zinc-500">{{ $integration->external_account_name ?: 'No Facebook Page selected' }} → {{ $integration->company->name }} / {{ $integration->stage->name }}</p>
                             </div>
-                            <flux:button :href="route('integrations.meta.redirect', $integration)" variant="primary">{{ $integration->status === 'active' ? 'Reconnect Facebook' : 'Connect Facebook' }}</flux:button>
+                            @if (filled($integration->settings['configuration_id'] ?? null))
+                                <flux:button :href="route('integrations.meta.redirect', $integration)" variant="primary">{{ $integration->status === 'active' ? 'Reconnect Facebook' : 'Connect Facebook' }}</flux:button>
+                            @else
+                                <a href="#configuration-{{ $integration->public_id }}" class="inline-flex items-center justify-center rounded-lg bg-amber-100 px-3 py-2 text-sm font-semibold text-amber-800 transition hover:bg-amber-200 dark:bg-amber-950 dark:text-amber-200 dark:hover:bg-amber-900">Add Configuration ID</a>
+                            @endif
                         </div>
 
                         <div class="mt-5 grid gap-4 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800/70">
+                            <form id="configuration-{{ $integration->public_id }}" method="POST" action="{{ route('integrations.meta.configuration', $integration) }}" class="grid gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 dark:border-amber-900 dark:bg-amber-950/30 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                                @csrf
+                                @method('PUT')
+                                <div>
+                                    <label for="configuration_id_{{ $integration->public_id }}" class="font-medium text-amber-950 dark:text-amber-100">Facebook Login for Business Configuration ID</label>
+                                    <p class="mt-1 text-xs text-amber-800 dark:text-amber-300">Meta App → Facebook Login for Business → Configurations</p>
+                                    <input id="configuration_id_{{ $integration->public_id }}" name="configuration_id" inputmode="numeric" pattern="[0-9]+" value="{{ old('configuration_id', $integration->settings['configuration_id'] ?? '') }}" required class="mt-2 w-full rounded-lg border border-amber-300 bg-white px-3 py-2 text-sm text-zinc-950 dark:border-amber-800 dark:bg-zinc-900 dark:text-white">
+                                </div>
+                                <flux:button type="submit" variant="primary">Save ID</flux:button>
+                            </form>
                             <div>
                                 <p class="font-medium text-zinc-700 dark:text-zinc-300">Webhook callback URL</p>
                                 <code class="mt-1 block break-all text-xs text-zinc-600 dark:text-zinc-400">{{ route('webhooks.meta.verify', $integration->public_id) }}</code>
@@ -107,7 +121,8 @@
                     <flux:input name="name" :label="__('Connection name')" :value="old('name', 'Facebook Lead Ads')" required />
                     <flux:input name="app_id" :label="__('Meta App ID')" :value="old('app_id')" required />
                     <flux:input name="app_secret" type="password" :label="__('Meta App Secret')" required />
-                    <flux:input name="graph_version" :label="__('Graph API version')" :value="old('graph_version', 'v23.0')" required />
+                    <flux:input name="configuration_id" :label="__('Business Login Configuration ID (optional)')" :value="old('configuration_id')" inputmode="numeric" />
+                    <flux:input name="graph_version" :label="__('Graph API version')" :value="old('graph_version', 'v26.0')" required />
                     <div>
                         <label for="company_id" class="mb-2 block text-sm font-medium">Destination company</label>
                         <select id="company_id" name="company_id" required class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">

@@ -69,6 +69,42 @@ class MetaLeadAdsTest extends TestCase
             ->assertSee('https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/', false);
     }
 
+    public function test_company_admin_can_save_the_business_login_configuration_id(): void
+    {
+        $integration = $this->integration();
+        $settings = $integration->settings;
+        unset($settings['configuration_id']);
+        $integration->update(['settings' => $settings]);
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+
+        $this->actingAs($admin)
+            ->put(route('integrations.meta.configuration', $integration), [
+                'configuration_id' => '987654321012345',
+            ])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('integrations.meta.index'));
+
+        $this->assertSame('987654321012345', $integration->refresh()->settings['configuration_id']);
+    }
+
+    public function test_connect_facebook_uses_the_business_login_configuration(): void
+    {
+        $integration = $this->integration();
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $admin = User::factory()->for($tenant)->companyAdmin()->create();
+
+        $response = $this->actingAs($admin)->get(route('integrations.meta.redirect', $integration));
+
+        $response->assertRedirect();
+        $query = [];
+        parse_str((string) parse_url((string) $response->headers->get('Location'), PHP_URL_QUERY), $query);
+        $this->assertSame('987654321012345', $query['config_id']);
+        $this->assertSame('code', $query['response_type']);
+        $this->assertSame('true', $query['override_default_response_type']);
+        $this->assertArrayNotHasKey('scope', $query);
+    }
+
     public function test_company_admin_can_authorize_meta_and_choose_a_page_in_the_app(): void
     {
         $integration = $this->integration();
@@ -210,7 +246,11 @@ class MetaLeadAdsTest extends TestCase
             'name' => 'Test Meta',
             'status' => 'active',
             'credentials' => ['app_id' => '123', 'app_secret' => 'app-secret', 'page_access_token' => 'page-token'],
-            'settings' => ['graph_version' => 'v23.0', 'verify_token' => 'verify-token'],
+            'settings' => [
+                'graph_version' => 'v26.0',
+                'verify_token' => 'verify-token',
+                'configuration_id' => '987654321012345',
+            ],
             'external_account_id' => 'page-123',
             'external_account_name' => 'Test Page',
             'company_id' => $company->id,

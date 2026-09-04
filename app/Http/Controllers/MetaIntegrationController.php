@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreMetaIntegrationRequest;
+use App\Http\Requests\UpdateMetaIntegrationConfigurationRequest;
 use App\Models\Company;
 use App\Models\Integration;
 use App\Models\Pipeline;
@@ -35,7 +36,11 @@ class MetaIntegrationController extends Controller
             'name' => $data['name'],
             'status' => 'draft',
             'credentials' => ['app_id' => $data['app_id'], 'app_secret' => $data['app_secret']],
-            'settings' => ['graph_version' => $data['graph_version'], 'verify_token' => Str::random(48)],
+            'settings' => [
+                'graph_version' => $data['graph_version'],
+                'verify_token' => Str::random(48),
+                'configuration_id' => $data['configuration_id'] ?? null,
+            ],
             'company_id' => $data['company_id'],
             'pipeline_id' => $data['pipeline_id'],
             'stage_id' => $data['stage_id'],
@@ -45,18 +50,38 @@ class MetaIntegrationController extends Controller
         return to_route('integrations.meta.index')->with('status', $integration->name.' was created. Configure its webhook, then connect Facebook.');
     }
 
+    public function updateConfiguration(UpdateMetaIntegrationConfigurationRequest $request, Integration $integration): RedirectResponse
+    {
+        $integration->update([
+            'settings' => [
+                ...$integration->settings,
+                'configuration_id' => $request->validated('configuration_id'),
+            ],
+        ]);
+
+        return to_route('integrations.meta.index')->with('status', 'Meta Business Login Configuration ID saved.');
+    }
+
     public function redirect(Integration $integration, Request $request): RedirectResponse
     {
         $this->authorize('update', $integration);
         abort_unless($integration->provider === 'meta_lead_ads', 404);
+        $configurationId = $integration->settings['configuration_id'] ?? null;
+        if (! is_string($configurationId) || $configurationId === '') {
+            return to_route('integrations.meta.index')->withErrors([
+                'meta' => 'Add the Facebook Login for Business Configuration ID before connecting Facebook.',
+            ]);
+        }
+
         $state = Str::random(64);
         $request->session()->put('meta_oauth_state.'.$state, $integration->public_id);
         $query = http_build_query([
             'client_id' => $integration->credentials['app_id'],
             'redirect_uri' => route('integrations.meta.callback'),
             'state' => $state,
+            'config_id' => $configurationId,
             'response_type' => 'code',
-            'scope' => 'pages_show_list,pages_manage_metadata,pages_read_engagement,leads_retrieval',
+            'override_default_response_type' => 'true',
         ]);
 
         return redirect()->away('https://www.facebook.com/'.$integration->settings['graph_version'].'/dialog/oauth?'.$query);
