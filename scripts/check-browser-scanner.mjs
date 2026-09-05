@@ -8,12 +8,14 @@ import { pathToFileURL } from 'node:url';
 const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).href);
 const manifest = JSON.parse(await readFile('public/build/manifest.json', 'utf8'));
 const script = manifest['resources/js/app.js'].file;
-const fields = ['company_id', 'first_name', 'last_name', 'job_title', 'email', 'phone', 'notes', 'status', '_token'];
-const html = `<div data-card-scanner data-assets="/ocr/v7-1"><div data-drop-zone>
+const fields = ['company_id', 'new_company_name', 'first_name', 'last_name', 'job_title', 'email', 'phone', 'notes', 'status', '_token'];
+const html = `<div data-card-scanner data-assets="/ocr/v7-2"><div data-drop-zone>
 <img data-preview hidden><input type="file" data-image><input type="file" data-camera>
-<select data-language><option value="eng">English</option><option value="kur">Sorani</option><option value="eng+ara">Arabic</option><option value="kmr+eng">Kurmanji</option></select>
+<select data-language><option value="eng">English</option><option value="sorani+eng">Sorani</option><option value="eng+ara">Arabic</option><option value="kmr+eng">Kurmanji</option></select>
 <button data-scan disabled>Scan</button><button data-clear>Clear</button><p data-progress></p></div>
-<form data-review hidden action="/contacts">${fields.map(name => `<input name="${name}" value="${name === 'status' ? 'active' : ''}">`).join('')}
+<form data-review hidden action="/contacts"><select name="company_id" data-company-select><option value="1">Example Trading</option></select>
+<input name="create_company" data-create-company type="checkbox"><label data-new-company hidden><input name="new_company_name" data-new-company-name></label>
+${fields.filter(name => !['company_id', 'new_company_name'].includes(name)).map(name => `<input name="${name}" value="${name === 'status' ? 'active' : ''}">`).join('')}
 <p data-company-hint></p><pre data-raw></pre><p data-save-error></p><button data-save>Save</button></form></div>
 <script type="module" src="/build/${script}"></script>`;
 const writes = [];
@@ -65,15 +67,31 @@ try {
     assert.equal(await page.locator('[name=first_name]').inputValue(), 'Jane');
     assert.ok(await page.locator('[data-preview]').getAttribute('src'), 'Validation failure keeps the local photo for review');
     await page.unroute('**/contacts');
-    await page.locator('[name=company_id]').fill('1');
+    await page.locator('[name=company_id]').selectOption('1');
     await page.locator('[name=first_name]').fill('Reviewed');
     await page.locator('[data-save]').click();
     await page.waitForURL('**/saved');
     assert.equal(writes.length, 1);
     assert.equal(writes[0].first_name, 'Reviewed');
-    assert.deepEqual(Object.keys(writes[0]).sort(), fields.filter(key => key !== '_token').sort());
+    assert.deepEqual(Object.keys(writes[0]).sort(), [...fields.filter(key => key !== '_token'), 'create_company'].sort());
     assert.equal(errors.length, 0, errors.join('\n'));
     console.log('PASS: real browser OCR, phone viewport, local assets, review/save payload.');
+
+    await page.goto(origin);
+    await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
+    await page.locator('[data-scan]').click();
+    await page.locator('[data-review]').waitFor({ state: 'visible', timeout: 120000 });
+    await page.locator('[data-create-company]').check();
+    assert.equal(await page.locator('[data-company-select]').isDisabled(), true);
+    assert.equal(await page.locator('[data-new-company]').isVisible(), true);
+    await page.locator('[data-new-company-name]').fill('New Client Company');
+    await page.locator('[data-save]').click();
+    await page.waitForURL('**/saved');
+    assert.equal(writes.length, 2);
+    assert.equal(writes[1].create_company, true);
+    assert.equal(writes[1].company_id, null);
+    assert.equal(writes[1].new_company_name, 'New Client Company');
+    console.log('PASS: new client company can be created with the reviewed contact.');
 
     await page.goto(origin);
     await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
@@ -83,7 +101,7 @@ try {
     assert.equal(await page.locator('[data-review]').isVisible(), false);
     assert.equal(await page.locator('[data-image]').inputValue(), '');
     console.log('PASS: cancel clears photo and review.');
-    for (const language of ['kur', 'eng+ara', 'kmr+eng']) {
+    for (const language of ['sorani+eng', 'eng+ara', 'kmr+eng']) {
         await page.goto(origin);
         await page.locator('[data-language]').selectOption(language);
         await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
@@ -92,6 +110,22 @@ try {
         assert.equal(await page.locator('[data-review]').isVisible(), true, await page.locator('[data-progress]').textContent());
         console.log(`PASS: ${language} model loads and processes in browser.`);
     }
+    await page.goto(origin);
+    const soraniData = await page.evaluate(() => {
+        const canvas = document.createElement('canvas'); canvas.width = 1200; canvas.height = 520;
+        const ctx = canvas.getContext('2d'); ctx.fillStyle = 'white'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'black'; ctx.font = '52px Arial'; ctx.direction = 'rtl'; ctx.textAlign = 'right';
+        ['محمد شاكر', 'بەڕێوەبەری فرۆشتن', 'کۆمپانیای هەولێر', 'info@example.iq', '+964 750 123 4567'].forEach((line, index) => ctx.fillText(line, 1140, 75 + index * 85));
+        return canvas.toDataURL().split(',')[1];
+    });
+    await page.locator('[data-language]').selectOption('sorani+eng');
+    await page.locator('[data-image]').setInputFiles({ name: 'sorani.png', mimeType: 'image/png', buffer: Buffer.from(soraniData, 'base64') });
+    await page.locator('[data-scan]').click();
+    await page.locator('[data-review]').waitFor({ state: 'visible', timeout: 120000 });
+    const soraniText = await page.locator('[data-raw]').textContent();
+    assert.ok((soraniText.match(/[\u0600-\u06ff]/g) ?? []).length >= 10, `Unreadable Sorani OCR: ${soraniText}`);
+    console.log(`Sorani OCR sample: ${soraniText.replace(/\s+/g, ' ').trim()}`);
+    console.log('PASS: Sorani sample produces readable Arabic-script text in browser.');
 } finally {
     await browser?.close();
     await new Promise(done => server.close(done));

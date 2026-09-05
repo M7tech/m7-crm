@@ -1,5 +1,5 @@
 <x-layouts::app :title="__('Scan business card')">
-    <div class="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8" data-card-scanner data-assets="{{ asset('ocr/v7-1') }}">
+    <div class="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8" data-card-scanner data-assets="{{ asset('ocr/v7-2') }}">
         <a href="{{ route('contacts.index') }}" class="text-emerald-700 underline" wire:navigate>Back to contacts</a>
         <h1 class="text-2xl font-semibold">Scan a business card</h1>
         <p class="text-zinc-600 dark:text-zinc-400">Your device reads the photo. Review the details before saving. Only the contact fields you approve are sent to the CRM.</p>
@@ -17,7 +17,7 @@
                 <select data-language class="mt-1 block w-full rounded-lg border p-2 dark:bg-zinc-900">
                     <option value="eng+ara">Arabic and English</option>
                     <option value="eng">English</option>
-                    <option value="kur">Kurdish Sorani</option>
+                    <option value="sorani+eng">Kurdish Sorani (Arabic script)</option>
                     <option value="kmr+eng">Kurdish Kurmanji and English</option>
                 </select>
             </label>
@@ -28,17 +28,27 @@
             </div>
             <p data-progress role="status" aria-live="polite" class="text-sm"></p>
         </section>
-        <form data-review hidden action="{{ route('contacts.store') }}" method="POST" class="space-y-4 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700">
+        <form data-review hidden action="{{ route('contacts.business-cards.on-device.save') }}" method="POST" class="space-y-4 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700">
             @csrf
             <h2 class="text-xl font-semibold">Review contact details</h2>
             <p data-company-hint class="text-sm text-zinc-500"></p>
-            <label class="block">Destination company
-                <select name="company_id" required class="mt-1 block w-full rounded-lg border p-2 dark:bg-zinc-900">
+            <label class="block">Existing CRM client company
+                <select name="company_id" data-company-select required class="mt-1 block w-full rounded-lg border p-2 dark:bg-zinc-900">
                     <option value="">Choose a company</option>
                     @foreach ($companies as $company)
                         <option value="{{ $company->id }}">{{ $company->name }}</option>
                     @endforeach
                 </select>
+            </label>
+            <label class="flex items-start gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
+                <input name="create_company" data-create-company type="checkbox" value="1" class="mt-1">
+                <span>
+                    <span class="block font-medium">Create a new client company from this card</span>
+                    <span class="block text-sm text-zinc-500">This adds a customer account to your CRM. It does not create a login or another CRM workspace.</span>
+                </span>
+            </label>
+            <label data-new-company hidden class="block">New client company name
+                <input name="new_company_name" data-new-company-name dir="auto" maxlength="160" class="mt-1 block w-full rounded-lg border p-2 dark:bg-zinc-900">
             </label>
             @foreach (['first_name' => 'First name', 'last_name' => 'Last name', 'job_title' => 'Job title', 'email' => 'Email', 'phone' => 'Phone'] as $field => $label)
                 <label class="block">{{ $label }}

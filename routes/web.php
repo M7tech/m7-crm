@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::post('contacts/import', [ContactImportController::class, 'store'])->name('contacts.import.store');
     Route::get('contacts/business-cards/create', [BusinessCardScanController::class, 'create'])->name('contacts.business-cards.create');
     Route::get('contacts/business-cards/server', [BusinessCardScanController::class, 'server'])->name('contacts.business-cards.server');
+    Route::post('contacts/business-cards/on-device/contact', [BusinessCardScanController::class, 'saveOnDevice'])->name('contacts.business-cards.on-device.save');
     Route::post('contacts/business-cards', [BusinessCardScanController::class, 'store'])->name('contacts.business-cards.store');
     Route::get('contacts/business-cards/{businessCardScan}', [BusinessCardScanController::class, 'show'])->name('contacts.business-cards.show');
     Route::get('contacts/business-cards/{businessCardScan}/image', [BusinessCardScanController::class, 'image'])->name('contacts.business-cards.image');

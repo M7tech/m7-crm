@@ -12,6 +12,12 @@ test('English card extracts editable fields without adding raw OCR to notes', ()
     assert.match(fields.notes, /Website: www.example.com/);
     assert.doesNotMatch(fields.notes, /Jane|OCR/);
 });
+test('person beside a job title wins over an unknown brand at the top', () => {
+    const fields = parseBusinessCard('Blue Horizon\nJohn Smith\nSales Manager\njohn@bluehorizon.iq');
+    assert.equal(fields.first_name, 'John');
+    assert.equal(fields.last_name, 'Smith');
+    assert.equal(fields.company_name, 'Blue Horizon');
+});
 test('Arabic and Sorani text and numerals survive parsing', () => {
     const fields = parseBusinessCard('محمد شاكر\nبەڕێوەبەری فرۆشتن\nکۆمپانیا\ninfo@example.iq\n+٩٦٤ ٧٥٠ ١٢٣ ٤٥٦٧\nهەولێر');
     assert.equal(fields.first_name, 'محمد');

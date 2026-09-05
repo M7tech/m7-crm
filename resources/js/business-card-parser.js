@@ -12,15 +12,39 @@ export function parseBusinessCard(input) {
     const website = text.replace(email, '').match(/(?:https?:\/\/|www\.)?[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?\.(?:com|net|org|io|iq|co|biz|me|info|tech)(?:\/[^\s]*)?/i)?.[0] ?? '';
     const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
     const semantic = lines.filter(line => ![email, website, ...phones].some(value => value && line.includes(value)));
-    const companyPattern = /\b(company|group|trading|solutions|clinic|hospital|university|factory|llc|ltd|inc)\b|شركة|شركه|مؤسسة|مجموعة|عيادة|مستشفى|جامعة|مصنع|کۆمپانیا|كۆمپانيا|گروپ|نەخۆشخانە|زانکۆ/iu;
+    const companyPattern = /\b(company|group|trading|solutions?|services?|clinic|hospital|university|factory|industr(?:y|ies)|construction|contracting|holding|enterprise|international|agency|studio|cent(?:er|re)|plast(?:ic|ics)?|tech(?:nology|nologies)?|llc|ltd|inc)\b|شركة|شركه|مؤسسة|مجموعة|عيادة|مستشفى|جامعة|مصنع|کۆمپانیا|كۆمپانيا|گروپ|نەخۆشخانە|زانکۆ/iu;
     const jobPattern = /\b(manager|director|engineer|sales|marketing|founder|owner|ceo|cfo|cto|doctor|consultant|specialist|architect|accountant)\b|rêveber|endezyar|firotan|doktor|مدير|مهندس|دكتور|طبيب|مبيعات|تسويق|رئيس|مستشار|بەڕێوەبەر|ئەندازیار|دکتۆر|فرۆشتن|خاوەن/iu;
     const addressPattern = /\b(address|street|road|building|floor|office|iraq|baghdad|erbil|sulaymaniyah|duhok)\b|عراق|بغداد|أربيل|اربيل|السليمانية|دهوك|شارع|طابق|عنوان|کوردستان|هەولێر|سلێمانی|دهۆک|شەقام/iu;
-    const company = semantic.find(line => companyPattern.test(line)) ?? '';
-    const job = semantic.find(line => jobPattern.test(line)) ?? '';
+    const domainStem = (email.split('@')[1] ?? website.replace(/^https?:\/\//i, '').replace(/^www\./i, ''))
+        .split(/[./]/)[0]?.replace(/[^\p{L}\p{N}]/gu, '').toLocaleLowerCase() ?? '';
+    let companyIndex = semantic.findIndex(line => companyPattern.test(line));
+    if (companyIndex < 0 && domainStem.length >= 4) {
+        companyIndex = semantic.findIndex(line => line.replace(/[^\p{L}\p{N}]/gu, '').toLocaleLowerCase() === domainStem);
+    }
+    const jobIndex = semantic.findIndex(line => jobPattern.test(line));
+    const company = companyIndex >= 0 ? semantic[companyIndex] : '';
+    const job = jobIndex >= 0 ? semantic[jobIndex] : '';
     const address = semantic.find(line => line !== company && line !== job && addressPattern.test(line)) ?? '';
-    const name = semantic.filter(line => ![company, job, address].includes(line))
-        .map(line => line.replace(/^(?:dr\.?|eng\.?|mr\.?|mrs\.?|ms\.?|دكتور|المهندس|دکتۆر)\s+/iu, ''))
-        .find(line => !/\d/u.test(line) && line.split(/\s+/u).length >= 2 && line.split(/\s+/u).length <= 5) ?? '';
+    const honorificPattern = /^(?:dr\.?|doctor|eng\.?|engineer|mr\.?|mrs\.?|ms\.?|د\.?|دكتور|الدكتور|مهندس|المهندس|دکتۆر)\s+/iu;
+    const name = semantic.map((line, index) => {
+        const hasHonorific = honorificPattern.test(line);
+        const candidate = line.replace(honorificPattern, '').trim();
+        const words = candidate.split(/\s+/u);
+        let score = hasHonorific ? 100 : 0;
+        if (index === jobIndex - 1) score += 80;
+        if (companyIndex >= 0 && index > companyIndex) score += 15;
+        const emailName = email.split('@')[0]?.replace(/[^\p{L}\p{N}]/gu, '').toLocaleLowerCase() ?? '';
+        if (emailName.length >= 4 && words.some(word => emailName.includes(word.replace(/[^\p{L}\p{N}]/gu, '').toLocaleLowerCase()))) score += 45;
+        if (/^[A-Z\s.'’-]+$/.test(candidate)) score -= 35;
+        return { candidate, index, words, score };
+    }).filter(({ candidate, words, index }) => ![companyIndex, jobIndex].includes(index)
+        && candidate !== address
+        && !/\d/u.test(candidate)
+        && !companyPattern.test(candidate)
+        && !addressPattern.test(candidate)
+        && words.length >= 2
+        && words.length <= 5)
+        .sort((a, b) => b.score - a.score || b.index - a.index)[0]?.candidate ?? '';
     const [first = '', ...last] = name.split(/\s+/u);
     return {
         first_name: first.slice(0, 100), last_name: last.join(' ').slice(0, 100),

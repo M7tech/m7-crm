@@ -3,13 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SaveBusinessCardContactRequest;
+use App\Http\Requests\StoreOnDeviceBusinessCardContactRequest;
 use App\Http\Requests\StoreBusinessCardScanRequest;
 use App\Jobs\ProcessBusinessCardScan;
 use App\Models\BusinessCardScan;
 use App\Models\Company;
 use App\Models\Contact;
+use App\Models\Tenant;
 use App\Services\BusinessCardOcr;
+use App\Services\PlanEntitlements;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -90,6 +94,39 @@ class BusinessCardScanController extends Controller
 
         return to_route('contacts.business-cards.show', $scan)
             ->with('status', 'Business card uploaded. Contact details are being extracted.');
+    }
+
+    public function saveOnDevice(
+        StoreOnDeviceBusinessCardContactRequest $request,
+        PlanEntitlements $plans,
+    ): JsonResponse
+    {
+        $data = $request->validated();
+        $contact = DB::transaction(function () use ($request, $plans, $data): Contact {
+            if ($request->boolean('create_company')) {
+                $tenant = Tenant::query()->lockForUpdate()->findOrFail($request->user()->tenant_id);
+                $plans->assertCapacity($tenant, 'companies', 'new_company_name');
+                $company = Company::create([
+                    'name' => $data['new_company_name'],
+                    'status' => 'active',
+                ]);
+            } else {
+                $company = Company::query()->findOrFail($data['company_id']);
+            }
+
+            return Contact::create([
+                'company_id' => $company->id,
+                'first_name' => $data['first_name'],
+                'last_name' => $data['last_name'] ?? null,
+                'job_title' => $data['job_title'] ?? null,
+                'email' => $data['email'] ?? null,
+                'phone' => $data['phone'] ?? null,
+                'status' => $data['status'],
+                'notes' => $data['notes'] ?? null,
+            ]);
+        });
+
+        return response()->json(['redirect' => route('contacts.show', $contact)], 201);
     }
 
     public function show(string $businessCardScan): View

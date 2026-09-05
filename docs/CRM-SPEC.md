@@ -37,7 +37,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Company-admin user invitations with expiring single-use links (complete)
 - User activation/deactivation and role changes (complete)
 - CSV import with preview, validation, duplicate handling, and audit record (complete)
-- Business-card scanning on the user's device with Arabic, English, Kurdish Sorani, and Kurdish Kurmanji language choices and human review; optional queued server fallback (complete)
+- Business-card scanning on the user's device with Arabic, English, Kurdish Sorani, and Kurdish Kurmanji language choices, human review, and atomic creation of a new client company with its contact; optional queued server fallback (complete)
 
 ### 0.3 — Leads and pipeline (complete)
 
@@ -89,8 +89,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 
 ## Product conventions
 
-- Business cards are processed in a browser worker by default using self-hosted Tesseract.js and language assets. Photos and raw OCR stay in the current page; only reviewed contact fields are submitted. The user must select a CRM company, and the server validates ownership and permissions. Saving, cancellation, and navigation release the photo and temporary review data; the original gallery photo is unaffected. Language assets may be cached locally. Scans require an open page and results must be checked, particularly for mixed scripts. The explicit server fallback retains its private upload and 24-hour cleanup workflow.
-
+- Business cards are processed in a browser worker by default using self-hosted Tesseract.js and language assets. Photos and raw OCR stay in the current page; only reviewed contact fields are submitted. The user may select an existing CRM client company or create a client company and its first contact atomically; client companies do not receive a login or workspace. The server validates ownership, permissions, and plan capacity. Saving, cancellation, and navigation release the photo and temporary review data; the original gallery photo is unaffected. Language assets may be cached locally. Scans require an open page and results must be checked, particularly for mixed scripts. Sorani uses the Arabic-script LSTM model because Tesseract's Kurdish model is legacy-only. The explicit server fallback retains its private upload and 24-hour cleanup workflow.
 - Store money as integers in the currency's smallest unit and always store the ISO currency code.
 - Keep currencies separate in reports. Define lead win rate as Won divided by Won plus Lost for leads created in the selected reporting period; open leads do not count as decisions.
 - Store timestamps in UTC and render them in the tenant timezone, initially `Asia/Baghdad`.

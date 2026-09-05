@@ -12,7 +12,7 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `contacts` | Tenant | People linked to CRM customer companies |
 | `invitations` | Tenant | Expiring, single-use invitations for workspace team members |
 | `contact_imports` | Tenant | Audit summaries for previewed and completed contact CSV imports |
-| `business_card_scans` | Tenant | Short-lived private card images and reviewed multilingual contact extraction state |
+| `business_card_scans` | Tenant | Short-lived private card images and reviewed multilingual extraction state for the server fallback |
 | `pipelines` | Tenant | Named sales processes, including the default pipeline |
 | `pipeline_stages` | Tenant | Ordered open, won, and lost stages within a pipeline |
 | `leads` | Tenant | Sales opportunities linked to companies, contacts, owners, and stages |
@@ -43,7 +43,7 @@ The `invitations` table stores only a SHA-256 hash of each 384-bit random accept
 
 The `contact_imports` table records the source filename, importer, selected duplicate strategy, row counts, validation failures, and completion time. Preview rows are retained in tenant/user-bound cache for 30 minutes and are never stored in the audit table. Import execution locks the audit record and writes contacts in one transaction to prevent replay or partial imports.
 
-Default business-card scanning happens on the user's device. It creates no `business_card_scans` record and uploads no image or raw OCR. Reviewed fields are submitted to the existing contact creation endpoint, which authorizes creation, validates company ownership, and derives the tenant on the server. Browser state is discarded after saving or leaving the scanner; only language models are cached locally.
+Default business-card scanning happens on the user's device. It creates no `business_card_scans` record and uploads no image or raw OCR. Reviewed fields are submitted to a scanner-specific contact endpoint, which authorizes creation, validates company ownership, and derives the tenant on the server. The user can create a new CRM client company together with its first contact in one transaction; the tenant is locked while plan capacity is checked. A CRM client company remains a tenant-owned customer record and receives no user account or tenant workspace. Browser state is discarded after saving or leaving the scanner; only language models are cached locally.
 
 The optional server fallback uploads cards to tenant-partitioned private storage and processes them in a queued worker. Tesseract and ImageMagick run inside that worker. Deterministic parsing proposes contact fields for human review; OCR output is never written directly to `contacts`. The final save validates the selected company and every contact field again, then creates the contact and clears the extracted result in one transaction. Card images are deleted immediately after a successful save, while every unsaved scan and its private image expires after 24 hours. App, worker, and scheduler containers share only the private storage volume required for this fallback workflow. Existing scans and their cleanup remain supported.
 

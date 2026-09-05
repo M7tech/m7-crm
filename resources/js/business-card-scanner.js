@@ -10,6 +10,10 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
     const scanButton = get('[data-scan]');
     const saveButton = get('[data-save]');
     const language = get('[data-language]');
+    const companySelect = get('[data-company-select]');
+    const createCompany = get('[data-create-company]');
+    const newCompany = get('[data-new-company]');
+    const newCompanyName = get('[data-new-company-name]');
     const imageInputs = [get('[data-image]'), get('[data-camera]')];
     const events = new AbortController();
     let imageUrl = null;
@@ -17,6 +21,14 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
     let generation = 0;
     let scanning = false;
     let saving = false;
+
+    const syncCompanyChoice = () => {
+        const creating = createCompany.checked;
+        companySelect.disabled = creating;
+        companySelect.required = !creating;
+        newCompany.hidden = !creating;
+        newCompanyName.required = creating;
+    };
 
     const busy = value => {
         scanning = value;
@@ -33,6 +45,7 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
         preview.hidden = true;
         imageInputs.forEach(input => { input.value = ''; });
         form.reset();
+        syncCompanyChoice();
         form.hidden = true;
         get('[data-raw]').textContent = '';
         get('[data-company-hint]').textContent = '';
@@ -58,6 +71,7 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
     on(get('[data-drop-zone]'), 'dragover', event => event.preventDefault());
     on(get('[data-drop-zone]'), 'drop', event => { event.preventDefault(); if (!scanning) select(event.dataTransfer.files[0]); });
     on(get('[data-clear]'), 'click', () => { if (!saving) clear(); });
+    on(createCompany, 'change', syncCompanyChoice);
     on(scanButton, 'click', async () => {
         if (!imageUrl || scanning || saving) return;
         const run = ++generation;
@@ -71,15 +85,12 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
             if (!globalThis.WebAssembly || !globalThis.Worker) throw new Error('This browser cannot scan. Please use the server scanner.');
             const { createWorker } = await import('tesseract.js');
             if (generation !== run) return;
-            const sorani = language.value === 'kur';
             const task = (async () => {
-                localWorker = await createWorker(language.value.split('+'), sorani ? 0 : 1, {
+                localWorker = await createWorker(language.value.split('+'), 1, {
                     workerPath: `${root.dataset.assets}/worker.min.js`,
                     corePath: root.dataset.assets,
                     langPath: root.dataset.assets,
-                    legacyCore: sorani,
-                    legacyLang: sorani,
-                    cachePath: 'm7-card-ocr-v7-1',
+                    cachePath: 'm7-card-ocr-v7-2',
                     logger: message => {
                         if (run !== generation) return;
                         progress.textContent = message.status === 'recognizing text'
@@ -92,15 +103,20 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
                 await preview.decode();
                 if (run !== generation) return null;
                 // Bound worker memory on phones; the full-resolution photo stays outside OCR.
-                const scale = Math.min(1, 1800 / Math.max(preview.naturalWidth, preview.naturalHeight));
+                const scale = Math.min(1, 2200 / Math.max(preview.naturalWidth, preview.naturalHeight));
                 canvas = document.createElement('canvas');
                 canvas.width = Math.max(1, Math.round(preview.naturalWidth * scale));
                 canvas.height = Math.max(1, Math.round(preview.naturalHeight * scale));
                 const context = canvas.getContext('2d');
                 context.fillStyle = '#fff';
                 context.fillRect(0, 0, canvas.width, canvas.height);
+                context.filter = 'grayscale(1) contrast(1.25)';
                 context.drawImage(preview, 0, 0, canvas.width, canvas.height);
-                await localWorker.setParameters({ tessedit_pageseg_mode: '11' });
+                await localWorker.setParameters({
+                    tessedit_pageseg_mode: language.value.startsWith('sorani') ? '6' : '11',
+                    preserve_interword_spaces: '1',
+                    user_defined_dpi: '300',
+                });
                 return localWorker.recognize(canvas);
             })();
             const result = await Promise.race([task, new Promise((_, reject) => {
@@ -110,16 +126,22 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
             const text = result.data.text.trim();
             const suggested = parseBusinessCard(text);
             form.reset();
+            syncCompanyChoice();
             for (const [key, value] of Object.entries(suggested)) {
                 if (form.elements.namedItem(key)) form.elements.namedItem(key).value = value;
             }
             get('[data-raw]').textContent = text;
+            newCompanyName.value = suggested.company_name;
+            const existingCompany = [...companySelect.options].find(option => option.text.trim().toLocaleLowerCase() === suggested.company_name.trim().toLocaleLowerCase());
+            if (existingCompany) companySelect.value = existingCompany.value;
             get('[data-company-hint]').textContent = suggested.company_name ? `Card company: ${suggested.company_name}. Choose the CRM destination below.` : 'Choose the company this contact belongs to.';
             form.hidden = false;
             progress.textContent = text ? 'Scan complete. Check every field before saving.' : 'No readable text found. Retake the photo or enter the contact details below.';
         } catch (error) {
             if (run === generation) {
-                progress.textContent = error.message || 'The image could not be read. Try another photo or the server scanner.';
+                progress.textContent = error instanceof Error
+                    ? error.message
+                    : (String(error) || 'The image could not be read. Try another photo or the server scanner.');
                 generation++;
                 busy(false);
             }
@@ -139,8 +161,10 @@ export function initializeCardScanner(root = document.querySelector('[data-card-
         scanButton.disabled = true;
         get('[data-save-error]').textContent = '';
         // Explicit allowlist: the image, OCR text, and token never enter the body.
-        const payload = Object.fromEntries(['company_id', 'first_name', 'last_name', 'job_title', 'email', 'phone', 'notes', 'status']
+        const payload = Object.fromEntries(['company_id', 'new_company_name', 'first_name', 'last_name', 'job_title', 'email', 'phone', 'notes', 'status']
             .map(key => [key, form.elements.namedItem(key).value]));
+        payload.create_company = createCompany.checked;
+        if (payload.create_company) payload.company_id = null;
         try {
             const response = await fetch(form.action, {
                 method: 'POST', credentials: 'same-origin',
