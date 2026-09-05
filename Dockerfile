@@ -15,6 +15,7 @@ WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci --no-audit --no-fund
 COPY resources ./resources
+COPY scripts ./scripts
 COPY vite.config.js ./
 COPY --from=vendor /app/vendor ./vendor
 RUN npm run build
@@ -36,6 +37,7 @@ COPY docker/php/uploads.ini /usr/local/etc/php/conf.d/uploads.ini
 WORKDIR /app
 COPY --from=vendor /app /app
 COPY --from=assets /app/public/build /app/public/build
+COPY --from=assets /app/public/ocr /app/public/ocr
 COPY Caddyfile /etc/caddy/Caddyfile
 
 RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \

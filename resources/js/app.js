@@ -1,3 +1,5 @@
+import './business-card-scanner';
+
 const initializePipelineBoard = () => {
     const board = document.querySelector('[data-pipeline-board]');
 

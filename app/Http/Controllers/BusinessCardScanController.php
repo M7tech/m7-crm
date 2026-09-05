@@ -21,11 +21,20 @@ use Throwable;
 
 class BusinessCardScanController extends Controller
 {
-    public function create(BusinessCardOcr $ocr): View
+    public function create(): View
     {
         $this->authorize('create', BusinessCardScan::class);
 
         return view('contacts.business-cards.create', [
+            'companies' => Company::query()->orderBy('name')->get(['id', 'name']),
+        ]);
+    }
+
+    public function server(BusinessCardOcr $ocr): View
+    {
+        $this->authorize('create', BusinessCardScan::class);
+
+        return view('contacts.business-cards.server', [
             'scannerAvailable' => $ocr->isAvailable(),
             'scans' => BusinessCardScan::query()
                 ->with(['contact:id,first_name,last_name'])

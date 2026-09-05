@@ -3,15 +3,21 @@
     "private": true,
     "type": "module",
     "scripts": {
-        "build": "vp build",
-        "dev": "vp dev"
+        "test:scanner": "node --test tests/JavaScript/business-card*.test.mjs",
+        "build": "node scripts/prepare-browser-ocr.mjs && vp build",
+        "dev": "node scripts/prepare-browser-ocr.mjs && vp dev"
     },
     "dependencies": {
         "@laravel/passkeys": "^0.2.0",
         "@tailwindcss/vite": "^4.1.11",
+        "@tesseract.js-data/ara": "1.0.0",
+        "@tesseract.js-data/eng": "1.0.0",
+        "@tesseract.js-data/kmr": "1.0.0",
+        "@tesseract.js-data/kur": "1.0.0",
         "concurrently": "^10.0.3",
         "laravel-vite-plugin": "^3.1",
         "tailwindcss": "^4.0.7",
+        "tesseract.js": "7.0.0",
         "vite": "^8.0.0",
         "vite-plus": "0.3.0"
     },

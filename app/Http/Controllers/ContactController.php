@@ -8,6 +8,7 @@ use App\Models\Company;
 use App\Models\Contact;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
 
 class ContactController extends Controller
 {
@@ -21,9 +22,13 @@ class ContactController extends Controller
         ]);
     }
 
-    public function store(StoreContactRequest $request): RedirectResponse
+    public function store(StoreContactRequest $request): RedirectResponse|JsonResponse
     {
         $contact = Contact::create($request->validated());
+
+        if ($request->expectsJson()) {
+            return response()->json(['redirect' => route('contacts.show', $contact)], 201);
+        }
 
         return to_route('contacts.show', $contact)->with('status', 'Contact added successfully.');
     }
