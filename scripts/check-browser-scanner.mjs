@@ -9,8 +9,9 @@ const { chromium } = await import(pathToFileURL(process.env.PLAYWRIGHT_MODULE).h
 const manifest = JSON.parse(await readFile('public/build/manifest.json', 'utf8'));
 const script = manifest['resources/js/app.js'].file;
 const fields = ['company_id', 'new_company_name', 'first_name', 'last_name', 'job_title', 'email', 'phone', 'notes', 'status', '_token'];
-const html = `<div data-card-scanner data-assets="/ocr/v7-2"><div data-drop-zone>
-<img data-preview hidden><input type="file" data-image><input type="file" data-camera>
+const html = `<div data-card-scanner data-assets="/ocr/v7-2"><div data-drop-zone data-card-side="front">
+<img data-preview hidden><input type="file" data-image><input type="file" data-camera></div>
+<div data-drop-zone data-card-side="back"><img data-preview-back hidden><input type="file" data-image-back><input type="file" data-camera-back></div><div>
 <select data-language><option value="eng">English</option><option value="sorani+eng">Sorani</option><option value="eng+ara">Arabic</option><option value="kmr+eng">Kurmanji</option></select>
 <button data-scan disabled>Scan</button><button data-clear>Clear</button><p data-progress></p></div>
 <form data-review hidden action="/contacts"><select name="company_id" data-company-select><option value="1">Example Trading</option></select>
@@ -49,23 +50,40 @@ try {
     });
     await page.goto(origin);
     const data = await page.evaluate(() => {
-        const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 450;
-        const ctx = canvas.getContext('2d'); ctx.fillStyle = 'white'; ctx.fillRect(0, 0, 1000, 450);
-        ctx.fillStyle = 'black'; ctx.font = '40px Arial';
-        ['Jane Smith', 'Sales Director', 'Example Trading', 'jane@example.com', '+964 750 123 4567'].forEach((line, index) => ctx.fillText(line, 40, 65 + index * 70));
-        return canvas.toDataURL().split(',')[1];
+        const render = (lines, dark = false) => {
+            const canvas = document.createElement('canvas'); canvas.width = 1000; canvas.height = 450;
+            const ctx = canvas.getContext('2d'); ctx.fillStyle = dark ? '#151515' : 'white'; ctx.fillRect(0, 0, 1000, 450);
+            ctx.fillStyle = dark ? 'white' : 'black'; ctx.font = '40px Arial';
+            lines.forEach((line, index) => ctx.fillText(line, 40, 65 + index * 70));
+            return canvas;
+        };
+        const full = render(['Jane Smith', 'Sales Director', 'Example Trading', 'jane@example.com', '+964 750 123 4567']);
+        const rotated = document.createElement('canvas'); rotated.width = full.height; rotated.height = full.width;
+        const rotatedContext = rotated.getContext('2d');
+        rotatedContext.translate(rotated.width / 2, rotated.height / 2);
+        rotatedContext.rotate(Math.PI / 2);
+        rotatedContext.drawImage(full, -full.width / 2, -full.height / 2);
+        return {
+            front: render(['Jane Smith', 'Sales Director']).toDataURL().split(',')[1],
+            back: render(['Example Trading', 'jane@example.com', '+964 750 123 4567'], true).toDataURL().split(',')[1],
+            full: full.toDataURL().split(',')[1],
+            rotated: rotated.toDataURL().split(',')[1],
+        };
     });
-    await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
+    await page.locator('[data-image]').setInputFiles({ name: 'front.png', mimeType: 'image/png', buffer: Buffer.from(data.front, 'base64') });
+    await page.locator('[data-image-back]').setInputFiles({ name: 'back.png', mimeType: 'image/png', buffer: Buffer.from(data.back, 'base64') });
     await page.locator('[data-scan]').click();
     await page.locator('[data-review]').waitFor({ state: 'visible', timeout: 120000 });
     assert.equal(await page.locator('[name=first_name]').inputValue(), 'Jane');
     assert.equal(await page.locator('[name=email]').inputValue(), 'jane@example.com');
+    assert.match(await page.locator('[data-raw]').textContent(), /First side:[\s\S]*Other side:/);
     assert.equal(writes.length, 0, 'OCR must not upload anything');
     await page.route('**/contacts', route => route.fulfill({ status: 422, contentType: 'application/json', body: JSON.stringify({ errors: { company_id: ['Choose a valid company.'] } }) }));
     await page.locator('[data-save]').click();
     await page.locator('[data-save-error]').filter({ hasText: 'Choose a valid company.' }).waitFor();
     assert.equal(await page.locator('[name=first_name]').inputValue(), 'Jane');
     assert.ok(await page.locator('[data-preview]').getAttribute('src'), 'Validation failure keeps the local photo for review');
+    assert.ok(await page.locator('[data-preview-back]').getAttribute('src'), 'Validation failure keeps the other local photo for review');
     await page.unroute('**/contacts');
     await page.locator('[name=company_id]').selectOption('1');
     await page.locator('[name=first_name]').fill('Reviewed');
@@ -75,10 +93,10 @@ try {
     assert.equal(writes[0].first_name, 'Reviewed');
     assert.deepEqual(Object.keys(writes[0]).sort(), [...fields.filter(key => key !== '_token'), 'create_company'].sort());
     assert.equal(errors.length, 0, errors.join('\n'));
-    console.log('PASS: real browser OCR, phone viewport, local assets, review/save payload.');
+    console.log('PASS: two-sided OCR, dark reverse side, phone viewport, local assets, and review/save payload.');
 
     await page.goto(origin);
-    await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
+    await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data.full, 'base64') });
     await page.locator('[data-scan]').click();
     await page.locator('[data-review]').waitFor({ state: 'visible', timeout: 120000 });
     await page.locator('[data-create-company]').check();
@@ -94,17 +112,26 @@ try {
     console.log('PASS: new client company can be created with the reviewed contact.');
 
     await page.goto(origin);
-    await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
+    await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data.full, 'base64') });
+    await page.locator('[data-image-back]').setInputFiles({ name: 'back.png', mimeType: 'image/png', buffer: Buffer.from(data.back, 'base64') });
     await page.locator('[data-scan]').click();
     await page.locator('[data-clear]').click();
     assert.equal(await page.locator('[data-preview]').getAttribute('src'), null);
+    assert.equal(await page.locator('[data-preview-back]').getAttribute('src'), null);
     assert.equal(await page.locator('[data-review]').isVisible(), false);
     assert.equal(await page.locator('[data-image]').inputValue(), '');
     console.log('PASS: cancel clears photo and review.');
+    await page.goto(origin);
+    await page.locator('[data-image]').setInputFiles({ name: 'rotated.png', mimeType: 'image/png', buffer: Buffer.from(data.rotated, 'base64') });
+    await page.locator('[data-scan]').click();
+    await page.locator('[data-review]').waitFor({ state: 'visible', timeout: 180000 });
+    assert.equal(await page.locator('[name=first_name]').inputValue(), 'Jane');
+    assert.equal(await page.locator('[name=email]').inputValue(), 'jane@example.com');
+    console.log('PASS: rotated card is reoriented automatically.');
     for (const language of ['sorani+eng', 'eng+ara', 'kmr+eng']) {
         await page.goto(origin);
         await page.locator('[data-language]').selectOption(language);
-        await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data, 'base64') });
+        await page.locator('[data-image]').setInputFiles({ name: 'test.png', mimeType: 'image/png', buffer: Buffer.from(data.full, 'base64') });
         await page.locator('[data-scan]').click();
         await page.waitForFunction(() => !document.querySelector('[data-review]').hidden || /could not|too long|Error|failed/i.test(document.querySelector('[data-progress]').textContent), null, { timeout: 120000 });
         assert.equal(await page.locator('[data-review]').isVisible(), true, await page.locator('[data-progress]').textContent());

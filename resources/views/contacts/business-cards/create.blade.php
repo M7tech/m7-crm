@@ -1,18 +1,39 @@
 <x-layouts::app :title="__('Scan business card')">
-    <div class="mx-auto w-full max-w-3xl space-y-6 p-4 sm:p-6 lg:p-8" data-card-scanner data-assets="{{ asset('ocr/v7-2') }}">
+    <div class="mx-auto w-full max-w-4xl space-y-6 p-4 sm:p-6 lg:p-8" data-card-scanner data-assets="{{ asset('ocr/v7-2') }}">
         <a href="{{ route('contacts.index') }}" class="text-emerald-700 underline" wire:navigate>Back to contacts</a>
         <h1 class="text-2xl font-semibold">Scan a business card</h1>
         <p class="text-zinc-600 dark:text-zinc-400">Your device reads the photo. Review the details before saving. Only the contact fields you approve are sent to the CRM.</p>
         <noscript>Enable JavaScript to scan on this device, or use the server scanner below.</noscript>
-        <section class="space-y-4 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700" data-drop-zone>
-            <img data-preview hidden alt="Business card preview" class="max-h-80 w-full object-contain">
-            <label class="block font-medium">Choose a photo
-                <input data-image type="file" accept="image/jpeg,image/png,image/webp" class="mt-2 block w-full">
-            </label>
-            <label class="block font-medium">Or take a photo
-                <input data-camera type="file" accept="image/*" capture="environment" class="mt-2 block w-full">
-            </label>
-            <p class="text-sm text-zinc-500">You can also drop an image here. JPG, PNG, WebP · up to 10 MB. Keep the card flat and well lit.</p>
+        <section class="space-y-4 rounded-2xl border border-zinc-200 p-5 dark:border-zinc-700">
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700" data-drop-zone data-card-side="front">
+                    <div>
+                        <h2 class="font-semibold">First side</h2>
+                        <p class="text-sm text-zinc-500">Add the side with the person's main details.</p>
+                    </div>
+                    <img data-preview hidden alt="First side of business card" class="max-h-64 w-full object-contain">
+                    <label class="block font-medium">Choose a photo
+                        <input data-image type="file" accept="image/jpeg,image/png,image/webp" class="mt-2 block w-full">
+                    </label>
+                    <label class="block font-medium">Or take a photo
+                        <input data-camera type="file" accept="image/*" capture="environment" class="mt-2 block w-full">
+                    </label>
+                </div>
+                <div class="space-y-3 rounded-xl border border-zinc-200 p-4 dark:border-zinc-700" data-drop-zone data-card-side="back">
+                    <div>
+                        <h2 class="font-semibold">Other side <span class="font-normal text-zinc-500">(optional)</span></h2>
+                        <p class="text-sm text-zinc-500">Add it when details continue on the reverse.</p>
+                    </div>
+                    <img data-preview-back hidden alt="Other side of business card" class="max-h-64 w-full object-contain">
+                    <label class="block font-medium">Choose a photo
+                        <input data-image-back type="file" accept="image/jpeg,image/png,image/webp" class="mt-2 block w-full">
+                    </label>
+                    <label class="block font-medium">Or take a photo
+                        <input data-camera-back type="file" accept="image/*" capture="environment" class="mt-2 block w-full">
+                    </label>
+                </div>
+            </div>
+            <p class="text-sm text-zinc-500">You can add either side or both sides. Drop a photo onto its box, or choose JPG, PNG, or WebP up to 10 MB per image. Rotation and dark backgrounds are checked automatically.</p>
             <label class="block">Card language
                 <select data-language class="mt-1 block w-full rounded-lg border p-2 dark:bg-zinc-900">
                     <option value="eng+ara">Arabic and English</option>

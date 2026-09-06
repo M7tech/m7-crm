@@ -25,7 +25,7 @@ class BrowserBusinessCardTest extends TestCase
         $this->app->instance(BusinessCardOcr::class, $ocr);
 
         $this->actingAs($user)->get(route('contacts.business-cards.create'))
-            ->assertOk()->assertSee('Scan on this device')->assertSee($own->name)
+            ->assertOk()->assertSee('Scan on this device')->assertSee('Other side')->assertSee($own->name)
             ->assertDontSee($other->name);
     }
 
