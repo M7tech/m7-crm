@@ -15,7 +15,9 @@ Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL
 
 ## Deployment checks
 
+- `/` shows the public product page to guests and sends signed-in users to the dashboard.
 - `/up` returns HTTP 200.
+- `/privacy`, `/terms`, and `/data-deletion` are public and show the production legal contact.
 - Registration creates a tenant and company-admin user.
 - The queue worker and scheduler show as healthy/running.
 - Email verification and password reset work with the production mail provider.

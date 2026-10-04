@@ -22,7 +22,13 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
+Route::get('/', function () {
+    if (auth()->check()) {
+        return redirect()->route('dashboard');
+    }
+
+    return view('home', ['plans' => config('plans.plans', [])]);
+})->name('home');
 
 Route::view('privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('terms', 'legal.terms')->name('legal.terms');

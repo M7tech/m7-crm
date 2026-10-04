@@ -4,6 +4,11 @@
 <title>
     {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
 </title>
+<meta name="description" content="{{ $description ?? 'A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.' }}" />
+<meta property="og:title" content="{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}" />
+<meta property="og:description" content="{{ $description ?? 'A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.' }}" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ request()->url() }}" />
 
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
