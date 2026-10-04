@@ -73,6 +73,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Operational monitoring with scheduler/worker heartbeats, service probes, queue depth, and failure review (complete)
 - Public Privacy Policy, Terms of Service, and user-data deletion instructions with Meta setup URLs (complete)
 - Responsive public product homepage with registration, feature, security, and plan-capacity information (complete)
+- Public sitemap and crawler rules plus baseline browser security headers (complete)
 - Public launch
 
 ### Later services

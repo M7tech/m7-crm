@@ -9,6 +9,8 @@
 <meta property="og:description" content="{{ $description ?? 'A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.' }}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ request()->url() }}" />
+<meta name="robots" content="{{ $robots ?? (auth()->check() ? 'noindex,nofollow' : 'index,follow') }}" />
+<link rel="canonical" href="{{ $canonical ?? request()->url() }}" />
 
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">

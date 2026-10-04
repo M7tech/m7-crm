@@ -30,6 +30,15 @@ Route::get('/', function () {
     return view('home', ['plans' => config('plans.plans', [])]);
 })->name('home');
 
+Route::get('robots.txt', fn () => response()
+    ->view('seo.robots')
+    ->header('Content-Type', 'text/plain; charset=UTF-8'))
+    ->name('seo.robots');
+Route::get('sitemap.xml', fn () => response()
+    ->view('seo.sitemap')
+    ->header('Content-Type', 'application/xml; charset=UTF-8'))
+    ->name('seo.sitemap');
+
 Route::view('privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('terms', 'legal.terms')->name('legal.terms');
 Route::view('data-deletion', 'legal.data-deletion')->name('legal.data-deletion');
