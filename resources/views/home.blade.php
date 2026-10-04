@@ -1,6 +1,6 @@
 @php
-    $title = 'CRM for Iraqi sales teams';
-    $description = 'Manage customers, sales pipelines, follow-ups, Meta leads, and Messenger conversations in one secure workspace.';
+    $title = __('CRM for Iraqi sales teams');
+    $description = __('Manage customers, sales pipelines, follow-ups, Meta leads, and Messenger conversations in one secure workspace.');
     $limitLabels = [
         'members' => 'team members',
         'companies' => 'client companies',
@@ -9,7 +9,7 @@
     ];
 @endphp
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark scroll-smooth">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ in_array(app()->getLocale(), config('locales.rtl'), true) ? 'rtl' : 'ltr' }}" class="dark scroll-smooth">
     <head>
         @include('partials.head')
     </head>
@@ -21,13 +21,14 @@
                     <span class="hidden sm:inline">{{ config('app.name') }}</span>
                 </a>
                 <nav aria-label="Main navigation" class="hidden items-center gap-6 text-sm text-zinc-300 md:flex">
-                    <a href="#features" class="transition hover:text-white">Features</a>
-                    <a href="#security" class="transition hover:text-white">Security</a>
-                    <a href="#plans" class="transition hover:text-white">Plans</a>
+                    <a href="#features" class="transition hover:text-white">{{ __('Features') }}</a>
+                    <a href="#security" class="transition hover:text-white">{{ __('Security') }}</a>
+                    <a href="#plans" class="transition hover:text-white">{{ __('Plans') }}</a>
                 </nav>
                 <div class="flex items-center gap-2">
-                    <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white">Log in</a>
-                    <a href="{{ route('register') }}" class="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400"><span class="sm:hidden">Start</span><span class="hidden sm:inline">Create workspace</span></a>
+                    <x-language-switcher compact />
+                    <a href="{{ route('login') }}" class="rounded-lg px-3 py-2 text-sm font-medium text-zinc-300 transition hover:bg-white/5 hover:text-white">{{ __('Log in') }}</a>
+                    <a href="{{ route('register') }}" class="rounded-lg bg-emerald-500 px-3 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-emerald-400"><span class="sm:hidden">{{ __('Start') }}</span><span class="hidden sm:inline">{{ __('Create workspace') }}</span></a>
                 </div>
             </div>
         </header>
@@ -39,18 +40,18 @@
                     <div>
                         <div class="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-sm text-emerald-300">
                             <span class="size-1.5 rounded-full bg-emerald-400"></span>
-                            Built for focused sales teams
+                            {{ __('Built for focused sales teams') }}
                         </div>
-                        <h1 class="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl">A practical CRM for Iraqi sales teams</h1>
-                        <p class="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">Keep client companies, contacts, opportunities, follow-ups, Facebook leads, and Messenger conversations in one tenant-isolated workspace.</p>
+                        <h1 class="mt-6 text-4xl font-semibold tracking-tight text-balance sm:text-6xl">{{ __('A practical CRM for Iraqi sales teams') }}</h1>
+                        <p class="mt-6 max-w-2xl text-lg leading-8 text-zinc-300">{{ __('Keep client companies, contacts, opportunities, follow-ups, Facebook leads, and Messenger conversations in one tenant-isolated workspace.') }}</p>
                         <div class="mt-8 flex flex-wrap gap-3">
-                            <a href="{{ route('register') }}" class="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-zinc-950 shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400">Start a workspace</a>
-                            <a href="#features" class="rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white transition hover:bg-white/10">See what is included</a>
+                            <a href="{{ route('register') }}" class="rounded-xl bg-emerald-500 px-5 py-3 font-semibold text-zinc-950 shadow-lg shadow-emerald-950/40 transition hover:bg-emerald-400">{{ __('Start a workspace') }}</a>
+                            <a href="#features" class="rounded-xl border border-white/15 bg-white/5 px-5 py-3 font-semibold text-white transition hover:bg-white/10">{{ __('See what is included') }}</a>
                         </div>
                         <div class="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm text-zinc-400">
-                            <span>✓ No credit card required</span>
-                            <span>✓ Default sales pipeline included</span>
-                            <span>✓ Asia/Baghdad timezone</span>
+                            <span>✓ {{ __('No credit card required') }}</span>
+                            <span>✓ {{ __('Default sales pipeline included') }}</span>
+                            <span>✓ {{ __('Asia/Baghdad timezone') }}</span>
                         </div>
                     </div>
 

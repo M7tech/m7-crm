@@ -12,6 +12,7 @@ use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\InboxController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\LeadStageController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\MetaIntegrationController;
 use App\Http\Controllers\MetaWebhookController;
 use App\Http\Controllers\OperationsController;
@@ -24,6 +25,8 @@ use App\Http\Controllers\TeamMemberController;
 use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TaskStatusController;
 use Illuminate\Support\Facades\Route;
+
+Route::post('locale', LocaleController::class)->name('locale.update');
 
 Route::get('/', function () {
     if (auth()->check()) {

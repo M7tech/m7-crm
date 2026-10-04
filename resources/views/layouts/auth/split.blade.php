@@ -1,6 +1,6 @@
 @php($robots = 'noindex,nofollow')
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ in_array(app()->getLocale(), config('locales.rtl'), true) ? 'rtl' : 'ltr' }}" class="dark">
     <head>
         @include('partials.head')
     </head>
@@ -28,6 +28,7 @@
             </div>
             <div class="w-full lg:p-8">
                 <div class="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
+                    <div class="flex justify-end"><x-language-switcher compact /></div>
                     <a href="{{ route('home') }}" class="z-20 flex flex-col items-center gap-2 font-medium lg:hidden" wire:navigate>
                         <span class="flex h-9 w-9 items-center justify-center rounded-md">
                             <x-app-logo-icon class="size-9 fill-current text-black dark:text-white" />

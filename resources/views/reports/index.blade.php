@@ -2,15 +2,15 @@
     <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">Management</p>
-                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Sales reports</h1>
-                <p class="mt-1 text-zinc-600 dark:text-zinc-400">Conversion, pipeline value, ownership, and follow-up performance.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">{{ __('Management') }}</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ __('Sales reports') }}</h1>
+                <p class="mt-1 text-zinc-600 dark:text-zinc-400">{{ __('Conversion, pipeline value, ownership, and follow-up performance.') }}</p>
             </div>
             <form method="GET" action="{{ route('reports.index') }}">
-                <label for="period" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500">Reporting period</label>
+                <label for="period" class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500">{{ __('Reporting period') }}</label>
                 <select id="period" name="period" onchange="this.form.submit()" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
                     @foreach (['30' => 'Last 30 days', '90' => 'Last 90 days', '365' => 'Last 12 months', 'all' => 'All time'] as $value => $label)
-                        <option value="{{ $value }}" @selected($period === $value)>{{ $label }}</option>
+                        <option value="{{ $value }}" @selected($period === $value)>{{ __($label) }}</option>
                     @endforeach
                 </select>
             </form>
@@ -24,7 +24,7 @@
                 ['Win rate', number_format($winRate, 1).'%', 'Won ÷ decided leads'],
             ] as [$label, $value, $description])
                 <div class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                    <p class="text-sm font-medium text-zinc-500">{{ $label }}</p>
+                    <p class="text-sm font-medium text-zinc-500">{{ __($label) }}</p>
                     <p class="mt-3 text-3xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ is_numeric($value) ? number_format($value) : $value }}</p>
                     <p class="mt-2 text-sm text-zinc-500">{{ $description }}</p>
                 </div>
@@ -33,12 +33,12 @@
 
         <div class="grid gap-6 xl:grid-cols-2">
             <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <h2 class="font-semibold text-zinc-950 dark:text-white">Pipeline value</h2>
-                <p class="mt-1 text-sm text-zinc-500">Currencies remain separate to avoid misleading totals.</p>
+                <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Pipeline value') }}</h2>
+                <p class="mt-1 text-sm text-zinc-500">{{ __('Currencies remain separate to avoid misleading totals.') }}</p>
                 <div class="mt-5 grid gap-4 sm:grid-cols-2">
                     @foreach (['open' => 'Open value', 'won' => 'Won value'] as $type => $label)
                         <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/70">
-                            <p class="text-sm font-medium text-zinc-500">{{ $label }}</p>
+                            <p class="text-sm font-medium text-zinc-500">{{ __($label) }}</p>
                             <p class="mt-2 text-lg font-semibold text-zinc-950 dark:text-white">{{ \App\Models\Lead::formatMinorValue($values[$type]['IQD'], 'IQD') }}</p>
                             <p class="mt-1 text-sm font-medium text-zinc-700 dark:text-zinc-300">{{ \App\Models\Lead::formatMinorValue($values[$type]['USD'], 'USD') }}</p>
                         </div>
@@ -47,7 +47,7 @@
             </section>
 
             <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-                <h2 class="font-semibold text-zinc-950 dark:text-white">Follow-up performance</h2>
+                <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Follow-up performance') }}</h2>
                 <p class="mt-1 text-sm text-zinc-500">Tasks created during {{ strtolower($periodLabel) }}.</p>
                 <dl class="mt-5 grid grid-cols-2 gap-4">
                     @foreach ([
@@ -57,7 +57,7 @@
                         'Currently overdue' => $tasks['overdue'],
                     ] as $label => $value)
                         <div class="rounded-xl bg-zinc-50 p-4 dark:bg-zinc-800/70">
-                            <dt class="text-sm text-zinc-500">{{ $label }}</dt>
+                            <dt class="text-sm text-zinc-500">{{ __($label) }}</dt>
                             <dd class="mt-2 text-2xl font-semibold text-zinc-950 dark:text-white">{{ $value }}</dd>
                         </div>
                     @endforeach
@@ -66,7 +66,7 @@
         </div>
 
         <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
-            <h2 class="font-semibold text-zinc-950 dark:text-white">Pipeline distribution</h2>
+            <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Pipeline distribution') }}</h2>
             <div class="mt-5 grid gap-6 lg:grid-cols-2">
                 @foreach ($pipelines as $pipeline)
                     <div>
@@ -97,18 +97,18 @@
 
         <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
-                <h2 class="font-semibold text-zinc-950 dark:text-white">Team lead outcomes</h2>
+                <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Team lead outcomes') }}</h2>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-start text-sm">
                     <thead class="bg-zinc-50 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:bg-zinc-800/60">
-                        <tr><th class="px-5 py-3">Owner</th><th class="px-5 py-3">Leads</th><th class="px-5 py-3">Won</th><th class="px-5 py-3">Lost</th><th class="px-5 py-3">Win rate</th></tr>
+                        <tr><th class="px-5 py-3">{{ __('Owner') }}</th><th class="px-5 py-3">{{ __('Leads') }}</th><th class="px-5 py-3">{{ __('Won') }}</th><th class="px-5 py-3">{{ __('Lost') }}</th><th class="px-5 py-3">{{ __('Win rate') }}</th></tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
                         @forelse ($assignees as $assignee)
                             <tr><td class="px-5 py-4 font-medium text-zinc-950 dark:text-white">{{ $assignee['name'] }}</td><td class="px-5 py-4">{{ $assignee['total'] }}</td><td class="px-5 py-4">{{ $assignee['won'] }}</td><td class="px-5 py-4">{{ $assignee['lost'] }}</td><td class="px-5 py-4">{{ number_format($assignee['win_rate'], 1) }}%</td></tr>
                         @empty
-                            <tr><td colspan="5" class="px-5 py-10 text-center text-zinc-500">No leads in this reporting period.</td></tr>
+                            <tr><td colspan="5" class="px-5 py-10 text-center text-zinc-500">{{ __('No leads in this reporting period.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -117,13 +117,13 @@
 
         <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
-                <h2 class="font-semibold text-zinc-950 dark:text-white">Agent-attributed outcomes</h2>
-                <p class="mt-1 text-sm text-zinc-500">Statistical attribution only; agents do not receive CRM access.</p>
+                <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Agent-attributed outcomes') }}</h2>
+                <p class="mt-1 text-sm text-zinc-500">{{ __('Statistical attribution only; agents do not receive CRM access.') }}</p>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-start text-sm">
                     <thead class="bg-zinc-50 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:bg-zinc-800/60">
-                        <tr><th class="px-5 py-3">Agent</th><th class="px-5 py-3">Leads</th><th class="px-5 py-3">Won</th><th class="px-5 py-3">Lost</th><th class="px-5 py-3">Win rate</th><th class="px-5 py-3">Won value</th></tr>
+                        <tr><th class="px-5 py-3">{{ __('Agent') }}</th><th class="px-5 py-3">{{ __('Leads') }}</th><th class="px-5 py-3">{{ __('Won') }}</th><th class="px-5 py-3">{{ __('Lost') }}</th><th class="px-5 py-3">{{ __('Win rate') }}</th><th class="px-5 py-3">{{ __('Won value') }}</th></tr>
                     </thead>
                     <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
                         @forelse ($agents as $agent)
@@ -136,7 +136,7 @@
                                 <td class="px-5 py-4"><span class="block">{{ \App\Models\Lead::formatMinorValue($agent['won_values']['IQD'], 'IQD') }}</span><span class="mt-1 block text-xs text-zinc-500">{{ \App\Models\Lead::formatMinorValue($agent['won_values']['USD'], 'USD') }}</span></td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-5 py-10 text-center text-zinc-500">No leads in this reporting period.</td></tr>
+                            <tr><td colspan="6" class="px-5 py-10 text-center text-zinc-500">{{ __('No leads in this reporting period.') }}</td></tr>
                         @endforelse
                     </tbody>
                 </table>

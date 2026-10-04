@@ -4,9 +4,9 @@
 <title>
     {{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}
 </title>
-<meta name="description" content="{{ $description ?? 'A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.' }}" />
+<meta name="description" content="{{ $description ?? __('A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.') }}" />
 <meta property="og:title" content="{{ filled($title ?? null) ? $title.' - '.config('app.name', 'Laravel') : config('app.name', 'Laravel') }}" />
-<meta property="og:description" content="{{ $description ?? 'A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.' }}" />
+<meta property="og:description" content="{{ $description ?? __('A secure CRM for customer relationships, sales pipelines, follow-ups, and Meta leads.') }}" />
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ request()->url() }}" />
 <meta name="robots" content="{{ $robots ?? (auth()->check() ? 'noindex,nofollow' : 'index,follow') }}" />

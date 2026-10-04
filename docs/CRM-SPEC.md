@@ -50,6 +50,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Tenant-local tasks, queued reminders, overdue work, notes, and immutable activity history (complete)
 - Management dashboard and conversion reports with date-range, pipeline, owner, value, and task metrics (complete)
 - Statistical agent attribution on opportunities with won/lost, conversion, and separate-currency value reporting; agents receive no CRM access (complete)
+- English, Arabic, and Kurdish Sorani interface selection with persistent session preference and RTL layouts for Arabic-script locales (complete)
 - First controlled pilots with two or three companies
 
 ### 0.5 — Facebook Lead Ads (complete)

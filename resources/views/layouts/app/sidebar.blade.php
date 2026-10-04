@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="dark">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}" dir="{{ in_array(app()->getLocale(), config('locales.rtl'), true) ? 'rtl' : 'ltr' }}" class="dark">
     <head>
         @include('partials.head')
     </head>
@@ -65,6 +65,7 @@
 
             <flux:spacer />
 
+            <div class="px-3 pb-3"><x-language-switcher /></div>
             <x-desktop-user-menu class="hidden lg:block" :name="auth()->user()->name" />
         </flux:sidebar>
 
@@ -73,6 +74,8 @@
             <flux:sidebar.toggle class="lg:hidden" icon="bars-2" inset="left" />
 
             <flux:spacer />
+
+            <x-language-switcher compact />
 
             <flux:dropdown position="top" align="end">
                 <flux:profile

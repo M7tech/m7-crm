@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\ResolveTenant;
+use App\Http\Middleware\SetLocale;
 use App\Http\Middleware\SetSecurityHeaders;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->trustProxies(at: '*');
         $middleware->validateCsrfTokens(except: ['webhooks/meta/*']);
         $middleware->appendToGroup('web', SetSecurityHeaders::class);
+        $middleware->appendToGroup('web', SetLocale::class);
 
         $middleware->alias([
             'tenant' => ResolveTenant::class,

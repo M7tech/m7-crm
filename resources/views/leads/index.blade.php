@@ -2,9 +2,9 @@
     <div class="flex w-full flex-1 flex-col gap-6 p-4 sm:p-6 lg:p-8">
         <div class="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
             <div>
-                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">Sales</p>
-                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">Pipeline</h1>
-                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">Drag lead cards between stages. Every movement is recorded automatically.</p>
+                <p class="text-sm font-semibold uppercase tracking-[0.18em] text-emerald-600 dark:text-emerald-400">{{ __('Sales') }}</p>
+                <h1 class="mt-1 text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ __('Pipeline') }}</h1>
+                <p class="mt-1 text-base text-zinc-600 dark:text-zinc-400">{{ __('Drag lead cards between stages. Every movement is recorded automatically.') }}</p>
             </div>
             <div class="flex flex-col gap-3 sm:flex-row sm:items-end">
                 @if ($pipelines->count() > 1)
@@ -18,9 +18,9 @@
                     </form>
                 @endif
                 @can('create', \App\Models\Pipeline::class)
-                    <flux:button :href="route('pipelines.index')" variant="ghost" icon="cog-6-tooth" wire:navigate>Configure</flux:button>
+                    <flux:button :href="route('pipelines.index')" variant="ghost" icon="cog-6-tooth" wire:navigate>{{ __('Configure') }}</flux:button>
                 @endcan
-                <flux:button :href="route('leads.create')" variant="primary" icon="plus" wire:navigate>Add lead</flux:button>
+                <flux:button :href="route('leads.create')" variant="primary" icon="plus" wire:navigate>{{ __('Add lead') }}</flux:button>
             </div>
         </div>
 
@@ -81,22 +81,22 @@
                                 >
                                     @can('update', $lead)
                                         <div class="mb-2 flex items-center gap-1 text-[0.68rem] font-semibold uppercase tracking-wider text-zinc-400" aria-hidden="true">
-                                            <span>⠿</span><span>Drag to move</span>
+                                            <span>⠿</span><span>{{ __('Drag to move') }}</span>
                                         </div>
                                     @endcan
                                     <a href="{{ route('leads.show', $lead) }}" class="font-semibold text-zinc-950 hover:text-emerald-700 dark:text-white dark:hover:text-emerald-400" wire:navigate>{{ $lead->title }}</a>
                                     <p class="mt-1 truncate text-sm text-zinc-500">{{ $lead->company->name }}</p>
                                     <div class="mt-3 flex items-center justify-between gap-3 text-xs">
                                         <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ $lead->formattedExpectedValue() }}</span>
-                                        <span class="truncate text-zinc-500">{{ $lead->assignedTo?->name ?? 'Unassigned' }}</span>
+                                        <span class="truncate text-zinc-500">{{ $lead->assignedTo?->name ?? __('Unassigned') }}</span>
                                     </div>
                                     @if ($lead->agent)
-                                        <p class="mt-2 truncate text-xs text-violet-600 dark:text-violet-400">Agent: {{ $lead->agent->name }}</p>
+                                        <p class="mt-2 truncate text-xs text-violet-600 dark:text-violet-400">{{ __('Agent') }}: {{ $lead->agent->name }}</p>
                                     @endif
 
                                     @can('update', $lead)
                                         <details class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">
-                                            <summary class="cursor-pointer text-xs font-semibold text-zinc-500 hover:text-emerald-700 dark:hover:text-emerald-400">Move without dragging</summary>
+                                            <summary class="cursor-pointer text-xs font-semibold text-zinc-500 hover:text-emerald-700 dark:hover:text-emerald-400">{{ __('Move without dragging') }}</summary>
                                             <form method="POST" action="{{ route('leads.stage.update', $lead) }}" class="mt-3 grid gap-2">
                                                 @csrf
                                                 @method('PUT')
@@ -115,7 +115,7 @@
                             <div data-empty-stage @class([
                                 'rounded-xl border border-dashed border-zinc-300 px-4 py-8 text-center text-sm text-zinc-500 dark:border-zinc-700',
                                 'hidden' => $stage->leads->isNotEmpty(),
-                            ])>Drop leads here</div>
+                                ])>{{ __('Drop leads here') }}</div>
                         </div>
                     </section>
                 @endforeach
