@@ -17,6 +17,14 @@ class PublicDiscoveryAndSecurityTest extends TestCase
             ->assertHeader('X-Frame-Options', 'DENY');
     }
 
+    public function test_exception_json_responses_keep_security_headers(): void
+    {
+        $this->getJson('/this-api-page-does-not-exist')
+            ->assertNotFound()
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'DENY');
+    }
+
     public function test_robots_file_points_to_public_only_sitemap(): void
     {
         $this->get(route('seo.robots'))

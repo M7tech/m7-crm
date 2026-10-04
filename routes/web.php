@@ -16,6 +16,7 @@ use App\Http\Controllers\MetaWebhookController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\PipelineController;
 use App\Http\Controllers\PublicContactController;
+use App\Http\Controllers\PublicSitemapController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamMemberController;
@@ -35,10 +36,7 @@ Route::get('robots.txt', fn () => response()
     ->view('seo.robots')
     ->header('Content-Type', 'text/plain; charset=UTF-8'))
     ->name('seo.robots');
-Route::get('sitemap.xml', fn () => response()
-    ->view('seo.sitemap')
-    ->header('Content-Type', 'application/xml; charset=UTF-8'))
-    ->name('seo.sitemap');
+Route::get('sitemap.xml', PublicSitemapController::class)->name('seo.sitemap');
 
 Route::view('privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('terms', 'legal.terms')->name('legal.terms');

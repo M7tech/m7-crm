@@ -13,8 +13,11 @@ class SetSecurityHeaders
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $response = $next($request);
+        return $this->apply($request, $next($request));
+    }
 
+    public function apply(Request $request, Response $response): Response
+    {
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
