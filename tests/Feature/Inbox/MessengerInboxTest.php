@@ -3,7 +3,9 @@
 namespace Tests\Feature\Inbox;
 
 use App\Enums\UserRole;
+use App\Jobs\ProcessMetaCommentWebhook;
 use App\Jobs\ProcessMetaMessageWebhook;
+use App\Jobs\SendMetaCommentReply;
 use App\Jobs\SendMetaMessage;
 use App\Jobs\SyncMetaConversationMessages;
 use App\Jobs\SyncMetaMessageHistory;
@@ -64,6 +66,64 @@ class MessengerInboxTest extends TestCase
             'body' => 'Is this product available?',
         ]);
         $this->assertSame('processed', $event->fresh()->status);
+    }
+
+    public function test_facebook_comment_webhook_creates_a_thread_and_public_reply_is_queued(): void
+    {
+        Queue::fake();
+        $integration = $this->integration();
+        $payload = ['object' => 'page', 'entry' => [[
+            'id' => 'page-123',
+            'changes' => [[
+                'field' => 'feed',
+                'value' => [
+                    'item' => 'comment',
+                    'verb' => 'add',
+                    'comment_id' => 'comment-789',
+                    'post_id' => 'page-123_post-456',
+                    'parent_id' => 'page-123_post-456',
+                    'created_time' => 1788530400,
+                    'from' => ['id' => 'person-456', 'name' => 'Commenting Customer'],
+                    'message' => 'Is this available in Erbil?',
+                ],
+            ]],
+        ]]];
+        $raw = json_encode($payload, JSON_THROW_ON_ERROR);
+        $server = ['HTTP_X_HUB_SIGNATURE_256' => 'sha256='.hash_hmac('sha256', $raw, 'app-secret-value-long-enough'), 'CONTENT_TYPE' => 'application/json'];
+
+        $this->call('POST', route('webhooks.meta.receive', $integration->public_id), [], [], [], $server, $raw)->assertOk();
+        $this->call('POST', route('webhooks.meta.receive', $integration->public_id), [], [], [], $server, $raw)->assertOk();
+
+        $event = WebhookEvent::withoutGlobalScopes()->sole();
+        $this->assertSame('facebook_comment', $event->event_type);
+        Queue::assertPushedTimes(ProcessMetaCommentWebhook::class, 1);
+
+        (new ProcessMetaCommentWebhook($event->id, $event->tenant_id))->handle(app(CurrentTenant::class));
+        $conversation = Conversation::query()->sole();
+        $this->assertSame('facebook_comments', $conversation->channel);
+        $this->assertSame('Commenting Customer', $conversation->participant_name);
+        $this->assertDatabaseHas('messages', [
+            'conversation_id' => $conversation->id,
+            'external_id' => 'comment-789',
+            'direction' => 'inbound',
+            'body' => 'Is this available in Erbil?',
+        ]);
+
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $user = User::factory()->for($tenant)->create();
+        $this->actingAs($user)
+            ->post(route('inbox.reply', $conversation), ['body' => 'Yes, it is available.'])
+            ->assertSessionHasNoErrors()
+            ->assertRedirect(route('inbox.show', $conversation));
+        Queue::assertPushed(SendMetaCommentReply::class);
+
+        $reply = Message::query()->where('direction', 'outbound')->sole();
+        $this->assertSame('comment-789', $reply->payload['reply_to_comment_id']);
+        Http::fake(['graph.facebook.com/*/comment-789/comments' => Http::response(['id' => 'comment-reply-123'])]);
+        (new SendMetaCommentReply($reply->id, $tenant->id))->handle(app(MetaGraphClient::class), app(CurrentTenant::class));
+
+        $this->assertSame('sent', $reply->refresh()->status);
+        $this->assertSame('comment-reply-123', $reply->external_id);
     }
 
     public function test_inbox_is_tenant_isolated(): void

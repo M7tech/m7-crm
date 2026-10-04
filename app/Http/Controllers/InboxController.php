@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreConversationReplyRequest;
+use App\Jobs\SendMetaCommentReply;
 use App\Jobs\SendMetaMessage;
 use App\Models\Conversation;
 use App\Models\Message;
@@ -52,16 +53,28 @@ class InboxController extends Controller
         $conversationModel = $request->conversation();
 
         DB::transaction(function () use ($conversationModel, $request): void {
+            $replyToCommentId = $conversationModel->channel === 'facebook_comments'
+                ? $conversationModel->messages()
+                    ->where('direction', 'inbound')
+                    ->whereNotNull('external_id')
+                    ->orderByDesc('sent_at')
+                    ->orderByDesc('id')
+                    ->value('external_id')
+                : null;
             $message = Message::create([
                 'conversation_id' => $conversationModel->id,
                 'direction' => 'outbound',
                 'type' => 'text',
                 'body' => $request->validated('body'),
+                'payload' => $replyToCommentId ? ['reply_to_comment_id' => $replyToCommentId] : null,
                 'status' => 'queued',
                 'sent_at' => now(),
             ]);
             $conversationModel->update(['last_message_at' => $message->sent_at]);
-            SendMetaMessage::dispatch($message->id, $message->tenant_id)->afterCommit();
+            match ($conversationModel->channel) {
+                'facebook_comments' => SendMetaCommentReply::dispatch($message->id, $message->tenant_id)->afterCommit(),
+                default => SendMetaMessage::dispatch($message->id, $message->tenant_id)->afterCommit(),
+            };
         });
 
         return to_route('inbox.show', $conversationModel)->with('status', 'Reply queued for delivery.');
@@ -71,7 +84,7 @@ class InboxController extends Controller
     private function conversations(): Builder
     {
         return Conversation::query()
-            ->select(['id', 'tenant_id', 'integration_id', 'company_id', 'participant_name', 'last_message_at'])
+            ->select(['id', 'tenant_id', 'integration_id', 'company_id', 'channel', 'participant_name', 'last_message_at'])
             ->with([
                 'integration:id,tenant_id,external_account_name',
                 'company:id,tenant_id,name',

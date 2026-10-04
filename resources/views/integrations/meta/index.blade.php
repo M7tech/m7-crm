@@ -39,7 +39,7 @@
                 <li class="bg-white p-5 dark:bg-zinc-900">
                     <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">3</span>
                     <h3 class="mt-3 font-medium text-zinc-950 dark:text-white">Configure Meta</h3>
-                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Add the shown OAuth URI, create a Facebook Login for Business configuration, and save its Configuration ID here. Add <code>pages_messaging</code>, then configure the <strong>Page</strong> webhook for <code>leadgen</code> and <code>messages</code>.</p>
+                    <p class="mt-1 text-sm leading-6 text-zinc-600 dark:text-zinc-400">Add the shown OAuth URI, create a Facebook Login for Business configuration, and save its Configuration ID here. Add <code>pages_messaging</code>, <code>pages_read_user_content</code>, and <code>pages_manage_engagement</code>, then configure the <strong>Page</strong> webhook for <code>leadgen</code>, <code>messages</code>, and <code>feed</code>.</p>
                 </li>
                 <li class="bg-white p-5 dark:bg-zinc-900">
                     <span class="flex size-7 items-center justify-center rounded-full bg-blue-100 text-sm font-semibold text-blue-700 dark:bg-blue-950 dark:text-blue-300">4</span>
@@ -68,7 +68,7 @@
             </div>
 
             <div class="flex flex-col gap-3 border-t border-zinc-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-zinc-700">
-                <p class="text-zinc-600 dark:text-zinc-400"><strong class="text-zinc-900 dark:text-zinc-100">Currently supported:</strong> Facebook and Instagram Instant Form leads, plus Facebook Messenger text conversations. Instagram direct messages and WhatsApp are next.</p>
+                <p class="text-zinc-600 dark:text-zinc-400"><strong class="text-zinc-900 dark:text-zinc-100">Currently supported:</strong> Facebook and Instagram Instant Form leads, Facebook Messenger text conversations, and public Facebook comment replies. Instagram direct messages and WhatsApp are next.</p>
                 <a href="https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/" target="_blank" rel="noopener noreferrer" class="shrink-0 font-medium text-blue-600 hover:underline dark:text-blue-400">Meta Lead Ads help ↗</a>
             </div>
         </section>

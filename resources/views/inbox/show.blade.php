@@ -7,7 +7,7 @@
             @foreach ($conversations as $item)
                 <a href="{{ route('inbox.show', $item) }}" class="block border-b border-zinc-100 px-4 py-3 last:border-0 {{ $item->id === $conversation->id ? 'bg-blue-50 dark:bg-blue-950/40' : 'hover:bg-zinc-50 dark:border-zinc-800 dark:hover:bg-zinc-800/70' }}">
                     <p class="truncate text-sm font-medium text-zinc-950 dark:text-white">{{ $item->participant_name ?: 'Facebook contact' }}</p>
-                    <p class="mt-1 truncate text-xs text-zinc-500">{{ $item->latestMessage?->body ?: 'No text preview' }}</p>
+                    <p class="mt-1 truncate text-xs text-zinc-500">{{ $item->channel === 'facebook_comments' ? 'Comment · ' : '' }}{{ $item->latestMessage?->body ?: 'No text preview' }}</p>
                 </a>
             @endforeach
         </aside>
@@ -16,7 +16,7 @@
             <header class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
                 <a href="{{ route('inbox.index') }}" class="mb-2 inline-flex text-sm font-medium text-blue-600 lg:hidden">← Inbox</a>
                 <h1 class="font-semibold text-zinc-950 dark:text-white">{{ $conversation->participant_name ?: 'Facebook contact' }}</h1>
-                <p class="mt-1 text-sm text-zinc-500">{{ $conversation->integration->external_account_name }} → {{ $conversation->company->name }}</p>
+                <p class="mt-1 text-sm text-zinc-500">{{ $conversation->channel === 'facebook_comments' ? 'Facebook comments' : 'Messenger' }} · {{ $conversation->integration->external_account_name }} → {{ $conversation->company->name }}</p>
             </header>
 
             @if (session('status'))
@@ -58,10 +58,10 @@
                 @csrf
                 <label for="body" class="sr-only">Reply</label>
                 <div class="flex items-end gap-3">
-                    <textarea id="body" name="body" rows="2" maxlength="2000" required placeholder="Write a reply…" class="min-h-12 flex-1 resize-y rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">{{ old('body') }}</textarea>
+                    <textarea id="body" name="body" rows="2" maxlength="2000" required placeholder="{{ $conversation->channel === 'facebook_comments' ? 'Write a public comment reply…' : 'Write a reply…' }}" class="min-h-12 flex-1 resize-y rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">{{ old('body') }}</textarea>
                     <flux:button type="submit" variant="primary">Send</flux:button>
                 </div>
-                <p class="mt-2 text-xs text-zinc-400">Replies follow Meta's Messenger messaging-window and permission rules.</p>
+                <p class="mt-2 text-xs text-zinc-400">{{ $conversation->channel === 'facebook_comments' ? 'This reply will be posted publicly on Facebook as the connected Page.' : "Replies follow Meta's Messenger messaging-window and permission rules." }}</p>
             </form>
         </section>
     </div>

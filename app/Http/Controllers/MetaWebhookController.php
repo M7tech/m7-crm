@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Jobs\ProcessMetaCommentWebhook;
 use App\Jobs\ProcessMetaLeadWebhook;
 use App\Jobs\ProcessMetaMessageWebhook;
 use App\Models\Integration;
@@ -96,25 +97,50 @@ class MetaWebhookController extends Controller
                 }
 
                 $value = $change['value'] ?? [];
-                if (! is_array($value) || ($change['field'] ?? null) !== 'leadgen' || empty($value['leadgen_id'])) {
+                if (! is_array($value)) {
                     continue;
                 }
 
-                DB::transaction(function () use ($pageConnection, $value): void {
-                    $event = WebhookEvent::firstOrCreate([
-                        'integration_id' => $pageConnection->id,
-                        'event_type' => 'leadgen',
-                        'external_id' => (string) $value['leadgen_id'],
-                    ], [
-                        'provider' => 'meta_lead_ads',
-                        'payload' => $value,
-                        'status' => 'pending',
-                    ]);
+                if (($change['field'] ?? null) === 'leadgen' && ! empty($value['leadgen_id'])) {
+                    DB::transaction(function () use ($pageConnection, $value): void {
+                        $event = WebhookEvent::firstOrCreate([
+                            'integration_id' => $pageConnection->id,
+                            'event_type' => 'leadgen',
+                            'external_id' => (string) $value['leadgen_id'],
+                        ], [
+                            'provider' => 'meta_lead_ads',
+                            'payload' => $value,
+                            'status' => 'pending',
+                        ]);
 
-                    if ($event->wasRecentlyCreated) {
-                        ProcessMetaLeadWebhook::dispatch($event->id, $event->tenant_id)->afterCommit();
-                    }
-                });
+                        if ($event->wasRecentlyCreated) {
+                            ProcessMetaLeadWebhook::dispatch($event->id, $event->tenant_id)->afterCommit();
+                        }
+                    });
+                }
+
+                $senderId = (string) (data_get($value, 'from.id') ?? $value['sender_id'] ?? '');
+                if (($change['field'] ?? null) === 'feed'
+                    && ($value['item'] ?? null) === 'comment'
+                    && ($value['verb'] ?? null) === 'add'
+                    && is_string($value['comment_id'] ?? null)
+                    && $senderId !== (string) $pageConnection->external_account_id) {
+                    DB::transaction(function () use ($pageConnection, $value): void {
+                        $event = WebhookEvent::firstOrCreate([
+                            'integration_id' => $pageConnection->id,
+                            'event_type' => 'facebook_comment',
+                            'external_id' => (string) $value['comment_id'],
+                        ], [
+                            'provider' => 'meta_comments',
+                            'payload' => $value,
+                            'status' => 'pending',
+                        ]);
+
+                        if ($event->wasRecentlyCreated) {
+                            ProcessMetaCommentWebhook::dispatch($event->id, $event->tenant_id)->afterCommit();
+                        }
+                    });
+                }
             }
         }
 

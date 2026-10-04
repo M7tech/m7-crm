@@ -21,6 +21,6 @@ class ConversationPolicy
     {
         return $this->view($user, $conversation)
             && $conversation->status === 'open'
-            && $conversation->channel === 'facebook_messenger';
+            && in_array($conversation->channel, ['facebook_messenger', 'facebook_comments'], true);
     }
 }

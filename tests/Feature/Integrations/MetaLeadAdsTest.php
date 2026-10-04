@@ -254,6 +254,8 @@ class MetaLeadAdsTest extends TestCase
             ->assertSessionHas('status', fn (string $status): bool => str_contains($status, 'pages_messaging'));
 
         $this->assertSame('active', $integration->refresh()->status);
+        $this->assertFalse($integration->settings['messenger_enabled']);
+        $this->assertTrue($integration->settings['comments_enabled']);
     }
 
     public function test_company_admin_can_delete_an_obsolete_meta_connection(): void
@@ -328,7 +330,8 @@ class MetaLeadAdsTest extends TestCase
         $this->assertSame('page-789', $integration->external_account_id);
         $this->assertSame('page-access-token', $integration->credentials['page_access_token']);
         $this->assertStringNotContainsString('page-access-token', (string) $integration->getRawOriginal('credentials'));
-        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/page-789/subscribed_apps'));
+        Http::assertSent(fn ($request) => str_ends_with($request->url(), '/page-789/subscribed_apps')
+            && $request['subscribed_fields'] === 'leadgen,messages,feed');
     }
 
     public function test_webhook_verification_and_signed_delivery_are_idempotent(): void

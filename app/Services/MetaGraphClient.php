@@ -64,25 +64,31 @@ class MetaGraphClient
         ));
     }
 
-    public function subscribePage(Integration $integration, string $pageId, string $pageToken): bool
+    /** @return array{messenger: bool, comments: bool} */
+    public function subscribePage(Integration $integration, string $pageId, string $pageToken): array
     {
-        try {
-            $this->graph($integration)
-                ->asForm()
-                ->withToken($pageToken)
-                ->post($pageId.'/subscribed_apps', ['subscribed_fields' => 'leadgen,messages'])
-                ->throw();
+        foreach ([
+            ['fields' => 'leadgen,messages,feed', 'messenger' => true, 'comments' => true],
+            ['fields' => 'leadgen,feed', 'messenger' => false, 'comments' => true],
+            ['fields' => 'leadgen,messages', 'messenger' => true, 'comments' => false],
+            ['fields' => 'leadgen', 'messenger' => false, 'comments' => false],
+        ] as $attempt) {
+            try {
+                $this->graph($integration)
+                    ->asForm()
+                    ->withToken($pageToken)
+                    ->post($pageId.'/subscribed_apps', ['subscribed_fields' => $attempt['fields']])
+                    ->throw();
 
-            return true;
-        } catch (RequestException) {
-            $this->graph($integration)
-                ->asForm()
-                ->withToken($pageToken)
-                ->post($pageId.'/subscribed_apps', ['subscribed_fields' => 'leadgen'])
-                ->throw();
-
-            return false;
+                return ['messenger' => $attempt['messenger'], 'comments' => $attempt['comments']];
+            } catch (RequestException $exception) {
+                if ($attempt['fields'] === 'leadgen') {
+                    throw $exception;
+                }
+            }
         }
+
+        return ['messenger' => false, 'comments' => false];
     }
 
     /** @return array<string, mixed> */
@@ -114,6 +120,22 @@ class MetaGraphClient
         }
 
         return $result['message_id'];
+    }
+
+    public function replyToComment(Integration $integration, string $commentId, string $body): string
+    {
+        $result = $this->graph($integration)
+            ->asForm()
+            ->withToken((string) $integration->credentials['page_access_token'])
+            ->post($commentId.'/comments', ['message' => $body])
+            ->throw()
+            ->json();
+
+        if (! is_array($result) || ! is_string($result['id'] ?? null)) {
+            throw new UnexpectedValueException('Meta did not return a Facebook comment ID.');
+        }
+
+        return $result['id'];
     }
 
     /** @return array{data: array<int, array<string, mixed>>, after: ?string} */
