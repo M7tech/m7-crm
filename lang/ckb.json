@@ -227,5 +227,7 @@
     "Lost": "دۆڕاو",
     "No leads in this reporting period.": "هیچ هەلێک لەم ماوەی ڕاپۆرتەدا نییە.",
     "Agent-attributed outcomes": "ئەنجامە تەرخانکراوەکانی بریکار",
-    "Statistical attribution only; agents do not receive CRM access.": "تەنها تەرخانکردنی ئاماری؛ بریکارەکان دەستیان بە CRM ناگات."
+    "Statistical attribution only; agents do not receive CRM access.": "تەنها تەرخانکردنی ئاماری؛ بریکارەکان دەستیان بە CRM ناگات.",
+    "Disconnected Page": "پەڕەی پچڕاو",
+    "Unknown company": "کۆمپانیای نەناسراو"
 }

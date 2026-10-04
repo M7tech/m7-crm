@@ -16,10 +16,10 @@
                     <div class="min-w-0">
                         <div class="flex items-center gap-2">
                             <p class="truncate font-medium text-zinc-950 dark:text-white">{{ $conversation->participant_name ?: __('Facebook contact') }}</p>
-                            <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">{{ __($conversation->channel === 'facebook_comments' ? 'Facebook comment' : 'Messenger') }}</span>
+                            <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">{{ $conversation->channel === 'facebook_comments' ? __('Facebook comment') : __('Messenger') }}</span>
                         </div>
                         <p class="mt-1 truncate text-sm text-zinc-500">{{ $conversation->latestMessage?->body ?: __('No text preview') }}</p>
-                        <p class="mt-1 text-xs text-zinc-400">{{ $conversation->integration->external_account_name }} → {{ $conversation->company->name }}</p>
+                        <p class="mt-1 text-xs text-zinc-400">{{ $conversation->integration?->external_account_name ?? __('Disconnected Page') }} → {{ $conversation->company?->name ?? __('Unknown company') }}</p>
                     </div>
                     <time class="shrink-0 text-xs text-zinc-400">{{ $conversation->last_message_at?->diffForHumans() }}</time>
                 </a>

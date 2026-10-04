@@ -227,5 +227,7 @@
     "Lost": "خاسرة",
     "No leads in this reporting period.": "لا توجد صفقات في فترة التقرير هذه.",
     "Agent-attributed outcomes": "النتائج المنسوبة للوكلاء",
-    "Statistical attribution only; agents do not receive CRM access.": "إسناد إحصائي فقط؛ لا يحصل الوكلاء على صلاحية دخول CRM."
+    "Statistical attribution only; agents do not receive CRM access.": "إسناد إحصائي فقط؛ لا يحصل الوكلاء على صلاحية دخول CRM.",
+    "Disconnected Page": "صفحة غير متصلة",
+    "Unknown company": "شركة غير معروفة"
 }
