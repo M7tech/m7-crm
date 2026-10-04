@@ -81,6 +81,41 @@ class MessengerInboxTest extends TestCase
         $this->actingAs($otherUser)->post(route('inbox.reply', $conversation), ['body' => 'Forbidden'])->assertNotFound();
     }
 
+    public function test_conversation_history_is_loaded_in_bounded_newest_first_pages(): void
+    {
+        $integration = $this->integration();
+        $conversation = $this->conversation($integration);
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $user = User::factory()->for($tenant)->create();
+
+        foreach (range(1, 60) as $number) {
+            $message = new Message([
+                'conversation_id' => $conversation->id,
+                'external_id' => 'page-message-'.$number,
+                'direction' => 'inbound',
+                'type' => 'text',
+                'body' => 'Paged message '.$number,
+                'status' => 'received',
+                'sent_at' => now()->addMinutes($number),
+            ]);
+            $message->tenant_id = $tenant->id;
+            $message->save();
+        }
+
+        $this->actingAs($user)
+            ->get(route('inbox.show', $conversation))
+            ->assertOk()
+            ->assertSee('Paged message 60')
+            ->assertDontSee('Hello from Facebook')
+            ->assertSee('Load older messages');
+
+        $this->actingAs($user)
+            ->get(route('inbox.show', [$conversation, 'messages' => 2]))
+            ->assertOk()
+            ->assertSee('Hello from Facebook')
+            ->assertSee('Newer messages');
+    }
+
     public function test_authorized_reply_is_queued_and_sent_through_meta(): void
     {
         Queue::fake();

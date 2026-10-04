@@ -26,8 +26,22 @@
                 <div class="mx-5 mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800 dark:bg-red-950/40 dark:text-red-200">{{ $errors->first() }}</div>
             @endif
 
-            <div class="flex flex-1 flex-col gap-3 overflow-y-auto bg-zinc-50/70 p-5 dark:bg-zinc-950/30">
-                @foreach ($conversation->messages as $message)
+            <div
+                class="flex flex-1 flex-col gap-3 overflow-y-auto bg-zinc-50/70 p-5 dark:bg-zinc-950/30"
+                @if ($messages->currentPage() === 1) x-data x-init="$nextTick(() => { $el.scrollTop = $el.scrollHeight })" @endif
+            >
+                @if ($messages->hasMorePages() || $messages->previousPageUrl())
+                    <nav aria-label="Conversation history" class="mb-2 flex items-center justify-center gap-3 text-sm">
+                        @if ($messages->previousPageUrl())
+                            <a href="{{ $messages->previousPageUrl() }}" class="rounded-lg border border-zinc-200 bg-white px-3 py-2 font-medium text-blue-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800">Newer messages</a>
+                        @endif
+                        @if ($messages->hasMorePages())
+                            <a href="{{ $messages->nextPageUrl() }}" class="rounded-lg border border-zinc-200 bg-white px-3 py-2 font-medium text-blue-600 hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800">Load older messages</a>
+                        @endif
+                    </nav>
+                @endif
+
+                @foreach ($messages as $message)
                     <div class="flex {{ $message->direction === 'outbound' ? 'justify-end' : 'justify-start' }}">
                         <div class="max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm {{ $message->direction === 'outbound' ? 'bg-blue-600 text-white' : 'border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white' }}">
                             <p class="whitespace-pre-wrap break-words">{{ $message->body }}</p>

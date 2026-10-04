@@ -18,20 +18,32 @@ class InboxController extends Controller
         $this->authorize('viewAny', Conversation::class);
 
         return view('inbox.index', [
-            'conversations' => $this->conversations()->paginate(30),
+            'conversations' => $this->conversations()->simplePaginate(30),
         ]);
     }
 
     public function show(int $conversation): View
     {
         $conversationModel = Conversation::query()
-            ->with(['integration', 'company', 'contact', 'messages' => fn ($query) => $query->orderBy('sent_at')->orderBy('id')])
+            ->with([
+                'integration:id,tenant_id,external_account_name',
+                'company:id,tenant_id,name',
+            ])
             ->findOrFail($conversation);
         $this->authorize('view', $conversationModel);
+
+        $messages = $conversationModel->messages()
+            ->select(['id', 'tenant_id', 'conversation_id', 'direction', 'type', 'body', 'status', 'sent_at'])
+            ->orderByDesc('sent_at')
+            ->orderByDesc('id')
+            ->simplePaginate(50, pageName: 'messages')
+            ->withQueryString();
+        $messages->setCollection($messages->getCollection()->reverse()->values());
 
         return view('inbox.show', [
             'conversation' => $conversationModel,
             'conversations' => $this->conversations()->limit(50)->get(),
+            'messages' => $messages,
         ]);
     }
 
@@ -59,7 +71,12 @@ class InboxController extends Controller
     private function conversations(): Builder
     {
         return Conversation::query()
-            ->with(['integration', 'company', 'latestMessage'])
+            ->select(['id', 'tenant_id', 'integration_id', 'company_id', 'participant_name', 'last_message_at'])
+            ->with([
+                'integration:id,tenant_id,external_account_name',
+                'company:id,tenant_id,name',
+                'latestMessage:id,tenant_id,conversation_id,body,sent_at',
+            ])
             ->orderByDesc('last_message_at')
             ->orderByDesc('id');
     }
