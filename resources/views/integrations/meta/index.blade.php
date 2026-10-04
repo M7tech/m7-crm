@@ -48,6 +48,25 @@
                 </li>
             </ol>
 
+            <div class="border-t border-zinc-200 px-5 py-4 dark:border-zinc-700">
+                <h3 class="font-medium text-zinc-950 dark:text-white">Meta app review URLs</h3>
+                <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-400">In Meta App settings → Basic, use these public HTTPS pages. Do not use facebook.com as your policy or deletion URL.</p>
+                <dl class="mt-3 grid gap-3 text-sm lg:grid-cols-3">
+                    <div class="min-w-0 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/70">
+                        <dt class="font-medium">Privacy Policy URL</dt>
+                        <dd><a href="{{ route('legal.privacy') }}" target="_blank" rel="noopener noreferrer" class="mt-1 block break-all text-blue-600 hover:underline dark:text-blue-400">{{ route('legal.privacy') }}</a></dd>
+                    </div>
+                    <div class="min-w-0 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/70">
+                        <dt class="font-medium">Terms of Service URL</dt>
+                        <dd><a href="{{ route('legal.terms') }}" target="_blank" rel="noopener noreferrer" class="mt-1 block break-all text-blue-600 hover:underline dark:text-blue-400">{{ route('legal.terms') }}</a></dd>
+                    </div>
+                    <div class="min-w-0 rounded-lg bg-zinc-50 p-3 dark:bg-zinc-800/70">
+                        <dt class="font-medium">User data deletion URL</dt>
+                        <dd><a href="{{ route('legal.data-deletion') }}" target="_blank" rel="noopener noreferrer" class="mt-1 block break-all text-blue-600 hover:underline dark:text-blue-400">{{ route('legal.data-deletion') }}</a></dd>
+                    </div>
+                </dl>
+            </div>
+
             <div class="flex flex-col gap-3 border-t border-zinc-200 px-5 py-4 text-sm sm:flex-row sm:items-center sm:justify-between dark:border-zinc-700">
                 <p class="text-zinc-600 dark:text-zinc-400"><strong class="text-zinc-900 dark:text-zinc-100">Currently supported:</strong> Facebook and Instagram Instant Form leads, plus Facebook Messenger text conversations. Instagram direct messages and WhatsApp are next.</p>
                 <a href="https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/" target="_blank" rel="noopener noreferrer" class="shrink-0 font-medium text-blue-600 hover:underline dark:text-blue-400">Meta Lead Ads help ↗</a>

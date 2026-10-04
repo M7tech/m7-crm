@@ -24,6 +24,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
 
+Route::view('privacy', 'legal.privacy')->name('legal.privacy');
+Route::view('terms', 'legal.terms')->name('legal.terms');
+Route::view('data-deletion', 'legal.data-deletion')->name('legal.data-deletion');
+
 Route::get('webhooks/meta/{integration}', [MetaWebhookController::class, 'verify'])->name('webhooks.meta.verify');
 Route::post('webhooks/meta/{integration}', [MetaWebhookController::class, 'receive'])->name('webhooks.meta.receive');
 

@@ -98,7 +98,10 @@ class MetaLeadAdsTest extends TestCase
             ->assertSee('Facebook &amp; Instagram setup guide', false)
             ->assertSee('Facebook and Instagram Instant Form leads')
             ->assertSee('https://developers.facebook.com/apps/', false)
-            ->assertSee('https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/', false);
+            ->assertSee('https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/', false)
+            ->assertSee(route('legal.privacy'), false)
+            ->assertSee(route('legal.terms'), false)
+            ->assertSee(route('legal.data-deletion'), false);
     }
 
     public function test_company_admin_can_save_the_business_login_configuration_id(): void

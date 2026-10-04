@@ -27,6 +27,8 @@ Meta App IDs, secrets, and Page access tokens are managed from **CRM → Integra
 
 Keep the queue worker running: signed webhook deliveries are accepted immediately and the worker retrieves the submitted lead details from Meta before creating the CRM contact, lead, and activity.
 
+Before publishing the Meta app, set `LEGAL_OPERATOR_NAME`, `LEGAL_CONTACT_EMAIL`, and `LEGAL_EFFECTIVE_DATE`. Confirm that `/privacy`, `/terms`, and `/data-deletion` are publicly reachable over HTTPS, then copy the exact URLs displayed in the CRM's Meta setup guide into Meta App settings → Basic. The included wording reflects the application's implemented data flows, but the operator should review it for its legal entity and applicable jurisdiction before public launch.
+
 ## Business-card scanner
 
 The default scanner runs in the user's browser with self-hosted Tesseract.js, WebAssembly, and English, Arabic, Kurdish Sorani, and Kurdish Kurmanji language files. No external AI account, API key, or CDN is required. It accepts one or both card sides, checks likely rotations, corrects dark backgrounds, and merges readable text before proposing fields. The card photos and raw OCR stay on the device; only fields reviewed by the user are submitted. Sorani uses the Arabic-script model because Tesseract's dedicated Kurdish data is an older legacy model. The first scan loads the selected language data and subsequent scans can reuse the browser cache.

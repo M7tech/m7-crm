@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: milestone 0.9 sellable-release controls complete; public launch preparation is next and additional messaging work remains deferred until Meta publishing
+Status: milestone 0.9 sellable-release controls complete; public launch preparation is in progress and additional messaging work remains deferred until Meta publishing
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -71,6 +71,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Subscription status and configurable plan quota enforcement (complete)
 - Administrator onboarding checklist and plan usage visibility (complete)
 - Operational monitoring with scheduler/worker heartbeats, service probes, queue depth, and failure review (complete)
+- Public Privacy Policy, Terms of Service, and user-data deletion instructions with Meta setup URLs (complete)
 - Public launch
 
 ### Later services

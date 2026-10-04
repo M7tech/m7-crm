@@ -15,6 +15,11 @@
                 <div class="flex flex-col gap-6">
                     {{ $slot }}
                 </div>
+                <nav aria-label="Legal" class="mt-4 flex flex-wrap justify-center gap-x-4 gap-y-2 text-xs text-zinc-500">
+                    <a href="{{ route('legal.privacy') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Privacy</a>
+                    <a href="{{ route('legal.terms') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Terms</a>
+                    <a href="{{ route('legal.data-deletion') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Data deletion</a>
+                </nav>
             </div>
         </div>
 
