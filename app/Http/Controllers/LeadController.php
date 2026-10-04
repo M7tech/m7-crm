@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreLeadRequest;
 use App\Http\Requests\UpdateLeadRequest;
+use App\Models\Agent;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -24,7 +25,7 @@ class LeadController extends Controller
             ->when($request->integer('pipeline'), fn ($query, int $id) => $query->whereKey($id))
             ->orderByDesc('is_default')
             ->firstOrFail();
-        $pipeline->load(['stages.leads' => fn ($query) => $query->with(['company', 'assignedTo'])->latest()]);
+        $pipeline->load(['stages.leads' => fn ($query) => $query->with(['company', 'assignedTo', 'agent'])->latest()]);
 
         return view('leads.index', compact('pipelines', 'pipeline'));
     }
@@ -45,7 +46,7 @@ class LeadController extends Controller
 
     public function show(int $lead): View
     {
-        $leadModel = Lead::query()->with(['company', 'contact', 'pipeline', 'stage', 'assignedTo', 'activities.actor'])->findOrFail($lead);
+        $leadModel = Lead::query()->with(['company', 'contact', 'pipeline', 'stage', 'assignedTo', 'agent', 'activities.actor'])->findOrFail($lead);
         $this->authorize('view', $leadModel);
 
         return view('leads.show', ['lead' => $leadModel]);
@@ -77,6 +78,15 @@ class LeadController extends Controller
             'contacts' => Contact::query()->with('company')->orderBy('first_name')->get(),
             'pipelines' => Pipeline::query()->with('stages')->orderByDesc('is_default')->get(),
             'members' => User::query()->where('tenant_id', $tenantId)->where('status', 'active')->orderBy('name')->get(),
+            'agents' => Agent::query()
+                ->where(function ($query): void {
+                    $query->where('status', 'active');
+                    if ($leadId = request()->route('lead')) {
+                        $query->orWhereHas('leads', fn ($leads) => $leads->whereKey((int) $leadId));
+                    }
+                })
+                ->orderBy('name')
+                ->get(),
         ];
     }
 }

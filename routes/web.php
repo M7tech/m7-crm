@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AgentController;
 use App\Http\Controllers\AutomationRuleController;
 use App\Http\Controllers\BusinessCardScanController;
 use App\Http\Controllers\CompanyController;
@@ -78,6 +79,9 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::get('inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
     Route::post('inbox/{conversation}/messages', [InboxController::class, 'reply'])->name('inbox.reply');
     Route::get('reports', ReportController::class)->name('reports.index');
+    Route::get('agents', [AgentController::class, 'index'])->name('agents.index');
+    Route::post('agents', [AgentController::class, 'store'])->name('agents.store');
+    Route::put('agents/{agent}/status', [AgentController::class, 'updateStatus'])->name('agents.status');
     Route::get('operations', OperationsController::class)->name('operations.index');
     Route::get('automations', [AutomationRuleController::class, 'index'])->name('automations.index');
     Route::post('automations', [AutomationRuleController::class, 'store'])->name('automations.store');

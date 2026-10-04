@@ -3,6 +3,7 @@
 namespace Tests\Feature\Leads;
 
 use App\Enums\UserRole;
+use App\Models\Agent;
 use App\Models\Company;
 use App\Models\Contact;
 use App\Models\Lead;
@@ -56,6 +57,7 @@ class LeadManagementTest extends TestCase
         $company = Company::factory()->for($tenant)->create();
         $contact = Contact::factory()->for($tenant)->for($company)->create();
         $user = User::factory()->for($tenant)->create();
+        $agent = Agent::factory()->for($tenant)->create();
 
         $response = $this->actingAs($user)->post(route('leads.store'), [
             'tenant_id' => Tenant::factory()->create()->id,
@@ -65,6 +67,7 @@ class LeadManagementTest extends TestCase
             'pipeline_id' => $pipeline->id,
             'stage_id' => $stage->id,
             'assigned_to_id' => $user->id,
+            'agent_id' => $agent->id,
             'expected_value' => '1250.75',
             'currency' => 'USD',
             'source' => 'Referral',
@@ -75,6 +78,7 @@ class LeadManagementTest extends TestCase
         $response->assertSessionHasNoErrors()->assertRedirect(route('leads.show', $lead));
         $this->assertSame($tenant->id, $lead->tenant_id);
         $this->assertSame(125075, $lead->expected_value_minor);
+        $this->assertSame($agent->id, $lead->agent_id);
         $this->assertDatabaseHas('lead_activities', [
             'tenant_id' => $tenant->id,
             'lead_id' => $lead->id,
@@ -93,6 +97,7 @@ class LeadManagementTest extends TestCase
         $otherCompany = Company::factory()->for($otherTenant)->create();
         $otherContact = Contact::factory()->for($otherTenant)->for($otherCompany)->create();
         $otherUser = User::factory()->for($otherTenant)->create();
+        $otherAgent = Agent::factory()->for($otherTenant)->create();
         $user = User::factory()->for($tenant)->create();
 
         $this->actingAs($user)->post(route('leads.store'), [
@@ -102,9 +107,10 @@ class LeadManagementTest extends TestCase
             'pipeline_id' => $otherPipeline->id,
             'stage_id' => $this->stage($otherPipeline)->id,
             'assigned_to_id' => $otherUser->id,
+            'agent_id' => $otherAgent->id,
             'expected_value' => 100,
             'currency' => 'IQD',
-        ])->assertSessionHasErrors(['company_id', 'contact_id', 'pipeline_id', 'stage_id', 'assigned_to_id']);
+        ])->assertSessionHasErrors(['company_id', 'contact_id', 'pipeline_id', 'stage_id', 'assigned_to_id', 'agent_id']);
 
         $this->assertDatabaseMissing('leads', ['title' => 'Blocked opportunity']);
         $this->assertDatabaseHas('companies', ['id' => $company->id]);

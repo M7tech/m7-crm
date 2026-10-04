@@ -90,6 +90,9 @@
                                         <span class="font-semibold text-zinc-800 dark:text-zinc-200">{{ $lead->formattedExpectedValue() }}</span>
                                         <span class="truncate text-zinc-500">{{ $lead->assignedTo?->name ?? 'Unassigned' }}</span>
                                     </div>
+                                    @if ($lead->agent)
+                                        <p class="mt-2 truncate text-xs text-violet-600 dark:text-violet-400">Agent: {{ $lead->agent->name }}</p>
+                                    @endif
 
                                     @can('update', $lead)
                                         <details class="mt-4 border-t border-zinc-100 pt-3 dark:border-zinc-800">

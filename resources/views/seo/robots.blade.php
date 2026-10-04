@@ -7,6 +7,7 @@ Disallow: /leads
 Disallow: /tasks
 Disallow: /inbox
 Disallow: /reports
+Disallow: /agents
 Disallow: /operations
 Disallow: /automations
 Disallow: /integrations

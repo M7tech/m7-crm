@@ -28,6 +28,7 @@
                         'Stage' => $lead->stage->name,
                         'Expected value' => $lead->formattedExpectedValue(),
                         'Assigned to' => $lead->assignedTo?->name ?? 'Unassigned',
+                        'Attribution agent' => $lead->agent?->name ?? 'No agent',
                         'Contact' => $lead->contact?->full_name ?? '—',
                         'Source' => $lead->source ?: '—',
                         'Outcome date' => $lead->closed_at?->format('M j, Y H:i') ?? 'Open',

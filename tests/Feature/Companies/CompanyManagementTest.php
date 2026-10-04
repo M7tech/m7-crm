@@ -3,8 +3,11 @@
 namespace Tests\Feature\Companies;
 
 use App\Models\Company;
+use App\Models\Lead;
+use App\Models\PipelineStage;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Services\PipelineProvisioner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -52,6 +55,28 @@ class CompanyManagementTest extends TestCase
             'tenant_id' => $otherTenant->id,
             'name' => 'Iraq Build',
         ]);
+    }
+
+    public function test_company_directory_distinguishes_customers_from_prospects_using_won_leads(): void
+    {
+        $tenant = Tenant::factory()->create();
+        $user = User::factory()->for($tenant)->create();
+        $pipeline = app(PipelineProvisioner::class)->createDefault($tenant);
+        $won = PipelineStage::withoutGlobalScopes()->where('pipeline_id', $pipeline->id)->where('type', 'won')->firstOrFail();
+        $buyer = Company::factory()->for($tenant)->create(['name' => 'Existing Buyer']);
+        Company::factory()->for($tenant)->create(['name' => 'New Prospect']);
+        Lead::factory()->for($tenant)->for($buyer)->create([
+            'pipeline_id' => $pipeline->id,
+            'stage_id' => $won->id,
+            'closed_at' => now(),
+        ]);
+
+        $this->actingAs($user)->get(route('companies.index'))
+            ->assertOk()
+            ->assertSee('Existing Buyer')
+            ->assertSee('New Prospect')
+            ->assertSee('Customer')
+            ->assertSee('Prospect');
     }
 
     public function test_company_creation_is_validated(): void

@@ -114,5 +114,33 @@
                 </table>
             </div>
         </section>
+
+        <section class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+            <div class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
+                <h2 class="font-semibold text-zinc-950 dark:text-white">Agent-attributed outcomes</h2>
+                <p class="mt-1 text-sm text-zinc-500">Statistical attribution only; agents do not receive CRM access.</p>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-start text-sm">
+                    <thead class="bg-zinc-50 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:bg-zinc-800/60">
+                        <tr><th class="px-5 py-3">Agent</th><th class="px-5 py-3">Leads</th><th class="px-5 py-3">Won</th><th class="px-5 py-3">Lost</th><th class="px-5 py-3">Win rate</th><th class="px-5 py-3">Won value</th></tr>
+                    </thead>
+                    <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
+                        @forelse ($agents as $agent)
+                            <tr>
+                                <td class="px-5 py-4 font-medium text-zinc-950 dark:text-white">{{ $agent['name'] }} @if ($agent['code'])<span class="ms-1 text-xs font-normal text-zinc-500">{{ $agent['code'] }}</span>@endif</td>
+                                <td class="px-5 py-4">{{ $agent['total'] }}</td>
+                                <td class="px-5 py-4">{{ $agent['won'] }}</td>
+                                <td class="px-5 py-4">{{ $agent['lost'] }}</td>
+                                <td class="px-5 py-4">{{ number_format($agent['win_rate'], 1) }}%</td>
+                                <td class="px-5 py-4"><span class="block">{{ \App\Models\Lead::formatMinorValue($agent['won_values']['IQD'], 'IQD') }}</span><span class="mt-1 block text-xs text-zinc-500">{{ \App\Models\Lead::formatMinorValue($agent['won_values']['USD'], 'USD') }}</span></td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="6" class="px-5 py-10 text-center text-zinc-500">No leads in this reporting period.</td></tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
     </div>
 </x-layouts::app>

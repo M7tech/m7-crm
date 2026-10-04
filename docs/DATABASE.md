@@ -16,6 +16,7 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `pipelines` | Tenant | Named sales processes, including the default pipeline |
 | `pipeline_stages` | Tenant | Ordered open, won, and lost stages within a pipeline |
 | `leads` | Tenant | Sales opportunities linked to companies, contacts, owners, and stages |
+| `agents` | Tenant | Non-login attribution labels for agent-sourced sales statistics |
 | `lead_activities` | Tenant | Immutable audit trail for lead creation, edits, and stage movement |
 | `tasks` | Tenant | Assigned follow-ups with due times, priorities, reminders, and completion state |
 | `task_activities` | Tenant | Immutable audit trail for task creation, edits, completion, and reopening |
@@ -50,6 +51,8 @@ The optional server fallback uploads cards to tenant-partitioned private storage
 Every tenant receives a default sales pipeline with New, Qualified, Proposal, Won, and Lost stages. Additional pipelines can define one to ten ordered open stages; terminal Won and Lost stages are created automatically. Lead validation requires the company, optional contact, pipeline, stage, and optional assignee to belong to the active tenant. It also verifies that a contact belongs to the selected company and a stage belongs to the selected pipeline.
 
 Lead expected values are stored in each currency's smallest unit: cents for USD and fils for IQD. Moving a lead to Won or Lost sets `closed_at`; Lost also requires a reason. Reopening a lead clears both outcome fields. Each workflow writes an append-only `lead_activities` record in the same database transaction.
+
+An optional `agent_id` on each lead records statistical attribution independently from the internal `assigned_to_id` salesperson. Agents have no user account, permissions, task ownership, or customer visibility. They are deactivated rather than deleted so historical won/lost and value reports remain attributable. A company is displayed as a customer once it has at least one Won lead; otherwise it remains a prospect.
 
 Tasks may link to a lead and are assigned to an active user in the same tenant. Due and reminder inputs are interpreted in the tenant timezone and stored in UTC. Salespeople see tasks assigned to or created by them; company admins and sales managers see their tenant's team tasks. Completion and reopening write append-only `task_activities` records. The scheduler claims due reminders once using `reminder_sent_at`, then queues email delivery for the worker.
 

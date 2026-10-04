@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['company_id', 'contact_id', 'pipeline_id', 'stage_id', 'assigned_to_id', 'title', 'expected_value_minor', 'currency', 'source', 'notes', 'loss_reason', 'closed_at'])]
+#[Fillable(['company_id', 'contact_id', 'pipeline_id', 'stage_id', 'assigned_to_id', 'agent_id', 'title', 'expected_value_minor', 'currency', 'source', 'notes', 'loss_reason', 'closed_at'])]
 class Lead extends Model
 {
     /** @use HasFactory<LeadFactory> */
@@ -62,6 +62,12 @@ class Lead extends Model
     public function assignedTo(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_to_id');
+    }
+
+    /** @return BelongsTo<Agent, $this> */
+    public function agent(): BelongsTo
+    {
+        return $this->belongsTo(Agent::class);
     }
 
     /** @return HasMany<LeadActivity, $this> */

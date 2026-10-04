@@ -27,6 +27,7 @@ class StoreLeadRequest extends FormRequest
             'pipeline_id' => ['required', 'integer', Rule::exists('pipelines', 'id')->where('tenant_id', $tenantId)],
             'stage_id' => ['required', 'integer', Rule::exists('pipeline_stages', 'id')->where('tenant_id', $tenantId)],
             'assigned_to_id' => ['nullable', 'integer', Rule::exists('users', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)->where('status', 'active'))],
+            'agent_id' => ['nullable', 'integer', Rule::exists('agents', 'id')->where('tenant_id', $tenantId)],
             'expected_value' => ['required', 'numeric', 'min:0', 'max:999999999'],
             'currency' => ['required', Rule::in(['IQD', 'USD'])],
             'source' => ['nullable', 'string', 'max:120'],

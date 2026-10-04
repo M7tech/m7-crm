@@ -17,7 +17,16 @@ class CompanyController extends Controller
         $this->authorize('viewAny', Company::class);
 
         return view('companies.index', [
-            'companies' => Company::query()->latest()->paginate(20),
+            'companies' => Company::query()
+                ->withCount([
+                    'leads',
+                    'leads as won_leads_count' => fn ($query) => $query->whereHas('stage', fn ($stage) => $stage->where('type', 'won')),
+                ])
+                ->withMax([
+                    'leads as last_purchase_at' => fn ($query) => $query->whereHas('stage', fn ($stage) => $stage->where('type', 'won')),
+                ], 'closed_at')
+                ->latest()
+                ->paginate(20),
         ]);
     }
 

@@ -35,6 +35,11 @@
                             {{ __('Reports') }}
                         </flux:sidebar.item>
                     @endcan
+                    @can('viewAny', \App\Models\Agent::class)
+                        <flux:sidebar.item icon="identification" :href="route('agents.index')" :current="request()->routeIs('agents.*')" wire:navigate>
+                            {{ __('Agents') }}
+                        </flux:sidebar.item>
+                    @endcan
                     @can('viewOperations')
                         <flux:sidebar.item icon="server-stack" :href="route('operations.index')" :current="request()->routeIs('operations.*')" wire:navigate>
                             {{ __('Operations') }}

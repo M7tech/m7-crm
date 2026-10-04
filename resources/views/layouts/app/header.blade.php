@@ -30,6 +30,11 @@
                         {{ __('Reports') }}
                     </flux:navbar.item>
                 @endcan
+                @can('viewAny', \App\Models\Agent::class)
+                    <flux:navbar.item icon="identification" :href="route('agents.index')" :current="request()->routeIs('agents.*')" wire:navigate>
+                        {{ __('Agents') }}
+                    </flux:navbar.item>
+                @endcan
                 @can('viewOperations')
                     <flux:navbar.item icon="server-stack" :href="route('operations.index')" :current="request()->routeIs('operations.*')" wire:navigate>
                         {{ __('Operations') }}
@@ -90,6 +95,11 @@
                     @can('viewReports')
                         <flux:sidebar.item icon="chart-bar" :href="route('reports.index')" :current="request()->routeIs('reports.*')" wire:navigate>
                             {{ __('Reports') }}
+                        </flux:sidebar.item>
+                    @endcan
+                    @can('viewAny', \App\Models\Agent::class)
+                        <flux:sidebar.item icon="identification" :href="route('agents.index')" :current="request()->routeIs('agents.*')" wire:navigate>
+                            {{ __('Agents') }}
                         </flux:sidebar.item>
                     @endcan
                     @can('viewOperations')

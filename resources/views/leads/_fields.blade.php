@@ -58,6 +58,17 @@
         @error('assigned_to_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
     </div>
 
+    <div>
+        <label for="agent_id" class="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">Attribution agent <span class="font-normal text-zinc-500">(statistics only)</span></label>
+        <select id="agent_id" name="agent_id" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+            <option value="">No agent</option>
+            @foreach ($agents as $agent)
+                <option value="{{ $agent->id }}" @selected((string) old('agent_id', $lead?->agent_id) === (string) $agent->id)>{{ $agent->name }}{{ $agent->code ? ' · '.$agent->code : '' }}{{ $agent->status === 'inactive' ? ' (inactive)' : '' }}</option>
+            @endforeach
+        </select>
+        @error('agent_id') <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+    </div>
+
     <flux:input name="source" :label="__('Source')" :value="old('source', $lead?->source)" placeholder="Referral, website, campaign…" />
 
     <flux:input name="expected_value" type="number" min="0" step="0.001" :label="__('Expected value')" :value="old('expected_value', $lead ? ($lead->expected_value_minor / ($lead->currency === 'USD' ? 100 : 1000)) : 0)" required />

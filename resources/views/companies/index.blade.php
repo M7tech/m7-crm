@@ -35,9 +35,9 @@
                             <thead class="bg-zinc-50 text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:bg-zinc-800/60">
                                 <tr>
                                     <th class="px-5 py-3">Company</th>
-                                    <th class="px-5 py-3">City</th>
-                                    <th class="px-5 py-3">Phone</th>
-                                    <th class="px-5 py-3">Added</th>
+                                    <th class="px-5 py-3">Relationship</th>
+                                    <th class="px-5 py-3">Purchases</th>
+                                    <th class="px-5 py-3">Latest purchase</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-zinc-100 dark:divide-zinc-800">
@@ -47,9 +47,15 @@
                                             <div class="font-medium text-zinc-950 dark:text-white">{{ $company->name }}</div>
                                             <div class="mt-0.5 text-xs text-zinc-500">{{ $company->email ?: 'No email' }}</div>
                                         </td>
-                                        <td class="px-5 py-4">{{ $company->city ?: '—' }}</td>
-                                        <td class="px-5 py-4">{{ $company->phone ?: '—' }}</td>
-                                        <td class="px-5 py-4 text-zinc-500">{{ $company->created_at->diffForHumans() }}</td>
+                                        <td class="px-5 py-4">
+                                            <span @class([
+                                                'rounded-full px-2 py-1 text-xs font-semibold',
+                                                'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' => $company->won_leads_count > 0,
+                                                'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' => $company->won_leads_count === 0,
+                                            ])>{{ $company->won_leads_count > 0 ? 'Customer' : 'Prospect' }}</span>
+                                        </td>
+                                        <td class="px-5 py-4"><span class="font-medium text-zinc-950 dark:text-white">{{ $company->won_leads_count }}</span><span class="ms-1 text-xs text-zinc-500">of {{ $company->leads_count }} leads</span></td>
+                                        <td class="px-5 py-4 text-zinc-500">{{ $company->last_purchase_at ? \Illuminate\Support\Carbon::parse($company->last_purchase_at)->format('M j, Y') : '—' }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

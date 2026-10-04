@@ -15,7 +15,7 @@ class SalesReport
     public function build(?CarbonImmutable $start, User $user): array
     {
         $leads = Lead::query()
-            ->with(['stage', 'assignedTo'])
+            ->with(['stage', 'assignedTo', 'agent'])
             ->when($start, fn ($query) => $query->where('created_at', '>=', $start))
             ->get();
         $won = $leads->filter(fn (Lead $lead) => $lead->stage->type === 'won');
@@ -43,6 +43,7 @@ class SalesReport
             ],
             'pipelines' => $this->pipelineRows($leads),
             'assignees' => $this->assigneeRows($leads),
+            'agents' => $this->agentRows($leads),
             'tasks' => [
                 'created' => $createdTasks->count(),
                 'completed' => $completedTasks,
@@ -100,6 +101,31 @@ class SalesReport
                     'won' => $won,
                     'lost' => $lost,
                     'win_rate' => $decided > 0 ? round(($won / $decided) * 100, 1) : 0.0,
+                ];
+            })
+            ->sortByDesc('won')
+            ->values();
+    }
+
+    /** @param Collection<int, Lead> $leads @return Collection<int, array<string, mixed>> */
+    private function agentRows(Collection $leads): Collection
+    {
+        return $leads->groupBy(fn (Lead $lead) => $lead->agent_id ?? 'unattributed')
+            ->map(function (Collection $agentLeads): array {
+                $wonLeads = $agentLeads->filter(fn (Lead $lead) => $lead->stage->type === 'won');
+                $won = $wonLeads->count();
+                $lost = $agentLeads->filter(fn (Lead $lead) => $lead->stage->type === 'lost')->count();
+                $decided = $won + $lost;
+                $agent = $agentLeads->first()?->agent;
+
+                return [
+                    'name' => $agent?->name ?? 'No agent',
+                    'code' => $agent?->code,
+                    'total' => $agentLeads->count(),
+                    'won' => $won,
+                    'lost' => $lost,
+                    'win_rate' => $decided > 0 ? round(($won / $decided) * 100, 1) : 0.0,
+                    'won_values' => $this->currencyTotals($wonLeads),
                 ];
             })
             ->sortByDesc('won')

@@ -3,6 +3,7 @@
 namespace Tests\Feature\Reports;
 
 use App\Enums\UserRole;
+use App\Models\Agent;
 use App\Models\Company;
 use App\Models\Lead;
 use App\Models\Pipeline;
@@ -31,11 +32,13 @@ class SalesReportTest extends TestCase
         $won = $this->stage($pipeline, 'won');
         $lost = $this->stage($pipeline, 'lost');
         $open = $this->stage($pipeline, 'open');
+        $agent = Agent::factory()->for($tenant)->create(['name' => 'Kurdistan Agent', 'code' => 'KA-1']);
 
         Lead::factory()->for($tenant)->for($company)->create([
             'pipeline_id' => $pipeline->id,
             'stage_id' => $won->id,
             'assigned_to_id' => $manager->id,
+            'agent_id' => $agent->id,
             'title' => 'Won report lead',
             'expected_value_minor' => 125050,
             'currency' => 'USD',
@@ -44,6 +47,7 @@ class SalesReportTest extends TestCase
             'pipeline_id' => $pipeline->id,
             'stage_id' => $lost->id,
             'assigned_to_id' => $manager->id,
+            'agent_id' => $agent->id,
             'title' => 'Lost report lead',
         ]);
         Lead::factory()->for($tenant)->for($company)->create([
@@ -61,7 +65,16 @@ class SalesReportTest extends TestCase
             ->assertSee('50.0%')
             ->assertSee('1,250.50 USD')
             ->assertSee('250,000.000 IQD')
+            ->assertSee('Kurdistan Agent')
             ->assertDontSee('Secret tenant lead');
+
+        app(CurrentTenant::class)->set($tenant);
+        $report = app(SalesReport::class)->build(CarbonImmutable::now()->subDays(29)->startOfDay(), $manager);
+        $agentRow = $report['agents']->firstWhere('name', 'Kurdistan Agent');
+        $this->assertSame(2, $agentRow['total']);
+        $this->assertSame(1, $agentRow['won']);
+        $this->assertSame(50.0, $agentRow['win_rate']);
+        $this->assertSame(125050, $agentRow['won_values']['USD']);
     }
 
     public function test_salesperson_cannot_open_management_reports(): void
