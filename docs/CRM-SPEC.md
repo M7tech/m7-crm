@@ -75,6 +75,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Responsive public product homepage with registration, feature, security, and plan-capacity information (complete)
 - Public sitemap and crawler rules plus baseline browser security headers (complete)
 - Validated, rate-limited public sales and support contact form delivered through the queue (complete)
+- Branded recovery pages for authorization, missing-page, rate-limit, server, and maintenance errors (complete)
 - Public launch
 
 ### Later services

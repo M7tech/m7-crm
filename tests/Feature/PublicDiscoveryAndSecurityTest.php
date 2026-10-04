@@ -6,6 +6,17 @@ use Tests\TestCase;
 
 class PublicDiscoveryAndSecurityTest extends TestCase
 {
+    public function test_missing_public_page_uses_safe_branded_error_page(): void
+    {
+        $this->get('/this-page-does-not-exist')
+            ->assertNotFound()
+            ->assertSee('We could not find that page')
+            ->assertSee('<meta name="robots" content="noindex, nofollow">', false)
+            ->assertSee(url('/contact'), false)
+            ->assertHeader('X-Content-Type-Options', 'nosniff')
+            ->assertHeader('X-Frame-Options', 'DENY');
+    }
+
     public function test_robots_file_points_to_public_only_sitemap(): void
     {
         $this->get(route('seo.robots'))

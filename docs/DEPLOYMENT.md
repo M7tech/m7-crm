@@ -19,6 +19,7 @@ Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL
 - `/up` returns HTTP 200.
 - `/privacy`, `/terms`, and `/data-deletion` are public and show the production legal contact.
 - `/robots.txt` references `/sitemap.xml`, and the sitemap contains only public pages.
+- An unknown URL returns the branded 404 page without exposing technical details.
 - HTTPS responses include HSTS, frame protection, MIME sniffing protection, and the documented permissions policy.
 - Registration creates a tenant and company-admin user.
 - The queue worker and scheduler show as healthy/running.
