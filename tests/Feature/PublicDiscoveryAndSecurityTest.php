@@ -18,6 +18,7 @@ class PublicDiscoveryAndSecurityTest extends TestCase
             ->assertOk()
             ->assertHeader('Content-Type', 'application/xml; charset=UTF-8')
             ->assertSee(route('home'), false)
+            ->assertSee(route('contact.create'), false)
             ->assertSee(route('legal.privacy'), false)
             ->assertDontSee(route('dashboard'), false)
             ->assertDontSee(route('login'), false);

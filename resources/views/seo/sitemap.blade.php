@@ -2,6 +2,7 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     @foreach ([
         ['route' => 'home', 'priority' => '1.0', 'frequency' => 'weekly'],
+        ['route' => 'contact.create', 'priority' => '0.7', 'frequency' => 'monthly'],
         ['route' => 'legal.privacy', 'priority' => '0.4', 'frequency' => 'monthly'],
         ['route' => 'legal.terms', 'priority' => '0.4', 'frequency' => 'monthly'],
         ['route' => 'legal.data-deletion', 'priority' => '0.4', 'frequency' => 'monthly'],

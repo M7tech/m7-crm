@@ -19,6 +19,7 @@
                 <li><strong>CRM data:</strong> companies, contacts, leads, tasks, notes, assignments, pipeline activity, imports, and other information users choose to enter.</li>
                 <li><strong>Meta integration data:</strong> connected Page identifiers and names, encrypted access credentials, lead-form submissions, Page-scoped participant identifiers, Messenger text messages, replies, delivery status, and webhook audit information.</li>
                 <li><strong>Technical data:</strong> sessions, timestamps, operational logs, queue and service health, and security events needed to run and protect the service.</li>
+                <li><strong>Support requests:</strong> the name, email, company, topic, plan interest, and message a visitor chooses to submit through the contact form.</li>
                 <li><strong>Business-card scans:</strong> the default scanner processes card photos and raw recognized text in the user's browser. Only fields the user reviews are submitted. The optional server scanner temporarily stores a private image and deletes it after saving or after 24 hours if abandoned.</li>
             </ul>
         </section>

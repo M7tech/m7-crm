@@ -14,6 +14,7 @@
                     <a href="{{ route('legal.privacy') }}" @class(['font-semibold text-emerald-700 dark:text-emerald-400' => request()->routeIs('legal.privacy'), 'hover:underline'])>Privacy</a>
                     <a href="{{ route('legal.terms') }}" @class(['font-semibold text-emerald-700 dark:text-emerald-400' => request()->routeIs('legal.terms'), 'hover:underline'])>Terms</a>
                     <a href="{{ route('legal.data-deletion') }}" @class(['font-semibold text-emerald-700 dark:text-emerald-400' => request()->routeIs('legal.data-deletion'), 'hover:underline'])>Data deletion</a>
+                    <a href="{{ route('contact.create') }}" @class(['font-semibold text-emerald-700 dark:text-emerald-400' => request()->routeIs('contact.*'), 'hover:underline'])>Contact</a>
                     <a href="{{ route(auth()->check() ? 'dashboard' : 'login') }}" class="rounded-lg bg-emerald-700 px-3 py-2 font-medium text-white hover:bg-emerald-800">{{ auth()->check() ? 'Open CRM' : 'Log in' }}</a>
                 </nav>
             </div>
@@ -26,7 +27,7 @@
         <footer class="border-t border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
             <div class="mx-auto flex w-full max-w-5xl flex-col gap-2 px-4 py-6 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                 <p>&copy; {{ now()->year }} {{ config('legal.operator_name') }}.</p>
-                <p>Privacy contact: <a href="mailto:{{ config('legal.contact_email') }}" class="hover:underline">{{ config('legal.contact_email') }}</a></p>
+                <p><a href="{{ route('contact.create') }}" class="hover:underline">Contact support</a> · Privacy: <a href="mailto:{{ config('legal.contact_email') }}" class="hover:underline">{{ config('legal.contact_email') }}</a></p>
             </div>
         </footer>
     </body>

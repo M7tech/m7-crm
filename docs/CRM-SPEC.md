@@ -74,6 +74,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Public Privacy Policy, Terms of Service, and user-data deletion instructions with Meta setup URLs (complete)
 - Responsive public product homepage with registration, feature, security, and plan-capacity information (complete)
 - Public sitemap and crawler rules plus baseline browser security headers (complete)
+- Validated, rate-limited public sales and support contact form delivered through the queue (complete)
 - Public launch
 
 ### Later services

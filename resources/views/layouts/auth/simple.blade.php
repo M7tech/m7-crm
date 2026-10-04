@@ -20,6 +20,7 @@
                     <a href="{{ route('legal.privacy') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Privacy</a>
                     <a href="{{ route('legal.terms') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Terms</a>
                     <a href="{{ route('legal.data-deletion') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Data deletion</a>
+                    <a href="{{ route('contact.create') }}" class="hover:text-zinc-900 hover:underline dark:hover:text-white">Contact</a>
                 </nav>
             </div>
         </div>

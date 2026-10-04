@@ -127,7 +127,7 @@
                                 @if ($key === config('plans.default'))
                                     <a href="{{ route('register') }}" class="mt-7 block rounded-xl bg-emerald-500 px-4 py-3 text-center font-semibold text-zinc-950 hover:bg-emerald-400">Create Starter workspace</a>
                                 @else
-                                    <a href="mailto:{{ config('legal.contact_email') }}?subject={{ rawurlencode(config('app.name').' '.$plan['label'].' plan') }}" class="mt-7 block rounded-xl border border-white/15 px-4 py-3 text-center font-semibold text-white hover:bg-white/5">Discuss {{ $plan['label'] }}</a>
+                                    <a href="{{ route('contact.create', ['plan' => $key]) }}" class="mt-7 block rounded-xl border border-white/15 px-4 py-3 text-center font-semibold text-white hover:bg-white/5">Discuss {{ $plan['label'] }}</a>
                                 @endif
                             </article>
                         @endforeach
@@ -143,7 +143,7 @@
         <footer class="border-t border-white/10">
             <div class="mx-auto flex w-full max-w-7xl flex-col gap-4 px-4 py-8 text-sm text-zinc-500 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
                 <p>&copy; {{ now()->year }} {{ config('legal.operator_name') }}.</p>
-                <nav aria-label="Footer" class="flex flex-wrap gap-x-5 gap-y-2"><a href="{{ route('legal.privacy') }}" class="hover:text-white">Privacy</a><a href="{{ route('legal.terms') }}" class="hover:text-white">Terms</a><a href="{{ route('legal.data-deletion') }}" class="hover:text-white">Data deletion</a><a href="mailto:{{ config('legal.contact_email') }}" class="hover:text-white">Contact</a></nav>
+                <nav aria-label="Footer" class="flex flex-wrap gap-x-5 gap-y-2"><a href="{{ route('legal.privacy') }}" class="hover:text-white">Privacy</a><a href="{{ route('legal.terms') }}" class="hover:text-white">Terms</a><a href="{{ route('legal.data-deletion') }}" class="hover:text-white">Data deletion</a><a href="{{ route('contact.create') }}" class="hover:text-white">Contact</a></nav>
             </div>
         </footer>
     </body>

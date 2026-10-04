@@ -15,6 +15,7 @@ use App\Http\Controllers\MetaIntegrationController;
 use App\Http\Controllers\MetaWebhookController;
 use App\Http\Controllers\OperationsController;
 use App\Http\Controllers\PipelineController;
+use App\Http\Controllers\PublicContactController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TeamMemberController;
@@ -42,6 +43,8 @@ Route::get('sitemap.xml', fn () => response()
 Route::view('privacy', 'legal.privacy')->name('legal.privacy');
 Route::view('terms', 'legal.terms')->name('legal.terms');
 Route::view('data-deletion', 'legal.data-deletion')->name('legal.data-deletion');
+Route::get('contact', [PublicContactController::class, 'create'])->name('contact.create');
+Route::post('contact', [PublicContactController::class, 'store'])->middleware('throttle:5,10')->name('contact.store');
 
 Route::get('webhooks/meta/{integration}', [MetaWebhookController::class, 'verify'])->name('webhooks.meta.verify');
 Route::post('webhooks/meta/{integration}', [MetaWebhookController::class, 'receive'])->name('webhooks.meta.receive');
