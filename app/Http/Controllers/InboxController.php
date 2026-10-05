@@ -88,7 +88,13 @@ class InboxController extends Controller
             ->with([
                 'integration:id,tenant_id,external_account_name',
                 'company:id,tenant_id,name',
-                'latestMessage:id,tenant_id,conversation_id,body,sent_at',
+                'latestMessage' => fn ($query) => $query->select([
+                    'messages.id',
+                    'messages.tenant_id',
+                    'messages.conversation_id',
+                    'messages.body',
+                    'messages.sent_at',
+                ]),
             ])
             ->orderByDesc('last_message_at')
             ->orderByDesc('id');
