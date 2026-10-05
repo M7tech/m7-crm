@@ -13,10 +13,28 @@ use App\Services\ConversationContactExtractor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class InboxController extends Controller
 {
+    public function updates(Request $request, int $conversation): JsonResponse
+    {
+        $model = Conversation::query()->findOrFail($conversation);
+        $this->authorize('view', $model);
+        $validated = $request->validate(['after' => ['required', 'integer', 'min:0']]);
+        $messages = $model->messages()
+            ->select(['id', 'direction', 'body', 'status', 'sent_at'])
+            ->where('id', '>', $validated['after'])
+            ->orderBy('id')->limit(100)->get();
+
+        return response()->json([
+            'html' => $messages->isEmpty() ? '' : view('inbox._messages', ['messages' => $messages])->render(),
+            'cursor' => $messages->max('id') ?? (int) $validated['after'],
+        ])->header('Cache-Control', 'no-store');
+    }
+
     public function index(): View
     {
         $this->authorize('viewAny', Conversation::class);

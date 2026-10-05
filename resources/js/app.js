@@ -1,4 +1,5 @@
 import './business-card-scanner';
+import './inbox-updates';
 
 const initializePipelineBoard = () => {
     const board = document.querySelector('[data-pipeline-board]');

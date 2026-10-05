@@ -27,6 +27,7 @@
             @endif
 
             <div
+                data-message-scroller
                 class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain bg-zinc-50/70 p-5 dark:bg-zinc-950/30"
                 @if ($messages->currentPage() === 1) x-data x-init="$nextTick(() => { $el.scrollTop = $el.scrollHeight })" @endif
             >
@@ -66,17 +67,9 @@
                     </nav>
                 @endif
 
-                @foreach ($messages as $message)
-                    <div class="flex {{ $message->direction === 'outbound' ? 'justify-end' : 'justify-start' }}">
-                        <div class="max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm {{ $message->direction === 'outbound' ? 'bg-blue-600 text-white' : 'border border-zinc-200 bg-white text-zinc-900 dark:border-zinc-700 dark:bg-zinc-800 dark:text-white' }}">
-                            <p class="whitespace-pre-wrap break-words">{{ $message->body }}</p>
-                            <div class="mt-1 flex items-center justify-end gap-2 text-[11px] {{ $message->direction === 'outbound' ? 'text-blue-100' : 'text-zinc-400' }}">
-                                <time>{{ $message->sent_at?->format('M j, H:i') }}</time>
-                                @if ($message->direction === 'outbound')<span>{{ ucfirst($message->status) }}</span>@endif
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
+                <div class="flex flex-col gap-3" @if ($messages->currentPage() === 1) data-inbox-updates="{{ route('inbox.updates', $conversation) }}" data-cursor="{{ $messages->getCollection()->max('id') ?? 0 }}" @endif>
+                    @include('inbox._messages')
+                </div>
             </div>
 
             <form data-reply-composer method="POST" action="{{ route('inbox.reply', $conversation) }}" class="shrink-0 border-t border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">

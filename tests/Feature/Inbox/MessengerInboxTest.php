@@ -142,10 +142,28 @@ class MessengerInboxTest extends TestCase
             ->assertSee('data-reply-composer', false);
         $this->actingAs($otherUser)->get(route('inbox.index'))->assertOk()->assertDontSee('Hello from Facebook');
         $this->actingAs($otherUser)->get(route('inbox.show', $conversation))->assertNotFound();
+        $this->actingAs($otherUser)->getJson(route('inbox.updates', [$conversation, 'after' => 0]))->assertNotFound();
         $this->actingAs($otherUser)->post(route('inbox.reply', $conversation), ['body' => 'Forbidden'])->assertNotFound();
         $this->actingAs($otherUser)->post(route('inbox.contact.save', $conversation), [
             'first_name' => 'Forbidden',
         ])->assertNotFound();
+    }
+
+    public function test_inbox_updates_return_only_new_messages_and_escape_customer_text(): void
+    {
+        $integration = $this->integration();
+        $conversation = $this->conversation($integration);
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $user = User::factory()->for($tenant)->create();
+        $message = $conversation->messages()->firstOrFail();
+        $message->update(['body' => '<script>alert(1)</script>']);
+
+        $this->actingAs($user)->getJson(route('inbox.updates', [$conversation, 'after' => 0]))
+            ->assertOk()->assertJsonPath('cursor', $message->id)
+            ->assertSee('&lt;script&gt;', false)->assertDontSee('<script>', false);
+        $this->getJson(route('inbox.updates', [$conversation, 'after' => $message->id]))
+            ->assertOk()->assertJsonPath('html', '')->assertJsonPath('cursor', $message->id);
+        $this->getJson(route('inbox.updates', [$conversation, 'after' => -1]))->assertUnprocessable();
     }
 
     public function test_conversation_history_is_loaded_in_bounded_newest_first_pages(): void

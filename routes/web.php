@@ -79,6 +79,8 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::put('tasks/{task}/status', [TaskStatusController::class, 'update'])->name('tasks.status.update');
     Route::resource('tasks', TaskController::class)->except(['destroy']);
     Route::get('inbox', [InboxController::class, 'index'])->name('inbox.index');
+    Route::get('inbox/{conversation}/updates', [InboxController::class, 'updates'])->name('inbox.updates');
+    Route::get('inbox/{conversation}/updates', [InboxController::class, 'updates'])->name('inbox.updates');
     Route::get('inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
     Route::post('inbox/{conversation}/contact', [InboxController::class, 'saveContact'])->name('inbox.contact.save');
     Route::post('inbox/{conversation}/messages', [InboxController::class, 'reply'])->name('inbox.reply');

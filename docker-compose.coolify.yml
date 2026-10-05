@@ -54,9 +54,22 @@ services:
       dockerfile: Dockerfile
     restart: unless-stopped
     environment: *app-environment
-    command: ["php", "artisan", "queue:work", "--sleep=3", "--tries=3", "--timeout=90"]
+    command: ["php", "artisan", "queue:work", "--queue=messaging,default", "--sleep=1", "--tries=3", "--timeout=90"]
     volumes:
       - private_storage:/app/storage/app/private
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  messaging-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment: *app-environment
+    command: ["php", "artisan", "queue:work", "--queue=messaging", "--sleep=1", "--tries=3", "--timeout=60"]
     depends_on:
       postgres:
         condition: service_healthy

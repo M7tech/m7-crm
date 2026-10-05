@@ -15,6 +15,8 @@ Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL
 
 ## Deployment checks
 
+Incoming Messenger and comment webhooks use the `messaging` queue. The dedicated `messaging-worker` handles these events independently of history imports and OCR; the general worker also listens to `messaging,default` as a fallback. Apply the updated Compose definition when deploying. Open conversations check for new stored messages every two seconds without replacing reply drafts or contact forms. Meta delivery time remains external to the CRM.
+
 - `/` shows the public product page to guests and sends signed-in users to the dashboard.
 - `/up` returns HTTP 200.
 - `/privacy`, `/terms`, and `/data-deletion` are public and show the production legal contact.
