@@ -25,9 +25,7 @@ class ProcessMetaCommentWebhook implements ShouldQueue
     public function __construct(
         public int $eventId,
         public int $tenantId,
-    ) {
-        $this->onQueue('messaging');
-    }
+    ) {}
 
     public function handle(CurrentTenant $currentTenant): void
     {

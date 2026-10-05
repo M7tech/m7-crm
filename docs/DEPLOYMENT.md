@@ -15,7 +15,7 @@ Do not expose PostgreSQL or Redis publicly. Configure daily encrypted PostgreSQL
 
 ## Deployment checks
 
-Incoming Messenger and comment webhooks use the `messaging` queue. The dedicated `messaging-worker` handles these events independently of history imports and OCR; the general worker also listens to `messaging,default` as a fallback. Apply the updated Compose definition when deploying. Open conversations check for new stored messages every two seconds without replacing reply drafts or contact forms. Meta delivery time remains external to the CRM.
+Incoming Messenger and comment webhooks use the default queue so existing Coolify worker configurations continue to receive them. The Compose workers also consume the legacy `messaging` queue to drain events queued by the previous release. If Coolify retains its saved Compose configuration, run `php artisan queue:work redis --queue=messaging --stop-when-empty --sleep=1 --tries=3 --timeout=60` in the app terminal once to drain that backlog. Open conversations check for new stored messages every two seconds without replacing reply drafts or contact forms. Meta delivery time remains external to the CRM.
 
 - `/` shows the public product page to guests and sends signed-in users to the dashboard.
 - `/up` returns HTTP 200.

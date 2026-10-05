@@ -30,6 +30,12 @@ class MessengerInboxTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_incoming_jobs_remain_compatible_with_default_queue_workers(): void
+    {
+        $this->assertNull((new ProcessMetaMessageWebhook(1, 1))->queue);
+        $this->assertNull((new ProcessMetaCommentWebhook(1, 1))->queue);
+    }
+
     public function test_signed_messenger_webhook_is_idempotent_and_creates_an_inbox_conversation(): void
     {
         Queue::fake();
