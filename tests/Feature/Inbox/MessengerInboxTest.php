@@ -135,7 +135,10 @@ class MessengerInboxTest extends TestCase
         $otherUser = User::factory()->for(Tenant::factory()->create())->create();
 
         $this->actingAs($user)->get(route('inbox.index'))->assertOk()->assertSee('Facebook contact');
-        $this->actingAs($user)->get(route('inbox.show', $conversation))->assertOk()->assertSee('Hello from Facebook');
+        $this->actingAs($user)->get(route('inbox.show', $conversation))
+            ->assertOk()
+            ->assertSee('Hello from Facebook')
+            ->assertSee('data-reply-composer', false);
         $this->actingAs($otherUser)->get(route('inbox.index'))->assertOk()->assertDontSee('Hello from Facebook');
         $this->actingAs($otherUser)->get(route('inbox.show', $conversation))->assertNotFound();
         $this->actingAs($otherUser)->post(route('inbox.reply', $conversation), ['body' => 'Forbidden'])->assertNotFound();

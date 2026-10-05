@@ -1,6 +1,6 @@
 <x-layouts::app :title="__('Conversation')">
-    <div class="mx-auto grid w-full max-w-7xl flex-1 gap-5 p-4 sm:p-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:p-8">
-        <aside class="hidden overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm lg:block dark:border-zinc-700 dark:bg-zinc-900">
+    <div class="mx-auto grid h-[calc(100dvh-4rem)] min-h-0 w-full max-w-7xl flex-1 gap-5 p-4 sm:p-6 lg:h-dvh lg:grid-cols-[20rem_minmax(0,1fr)] lg:p-8">
+        <aside class="hidden min-h-0 overflow-y-auto rounded-2xl border border-zinc-200 bg-white shadow-sm lg:block dark:border-zinc-700 dark:bg-zinc-900">
             <div class="border-b border-zinc-200 px-4 py-3 dark:border-zinc-700">
                 <a href="{{ route('inbox.index') }}" class="font-semibold text-zinc-950 dark:text-white">Inbox</a>
             </div>
@@ -12,7 +12,7 @@
             @endforeach
         </aside>
 
-        <section class="flex min-h-[70vh] flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+        <section class="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
             <header class="border-b border-zinc-200 px-5 py-4 dark:border-zinc-700">
                 <a href="{{ route('inbox.index') }}" class="mb-2 inline-flex text-sm font-medium text-blue-600 lg:hidden">← Inbox</a>
                 <h1 class="font-semibold text-zinc-950 dark:text-white">{{ $conversation->participant_name ?: 'Facebook contact' }}</h1>
@@ -27,7 +27,7 @@
             @endif
 
             <div
-                class="flex flex-1 flex-col gap-3 overflow-y-auto bg-zinc-50/70 p-5 dark:bg-zinc-950/30"
+                class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain bg-zinc-50/70 p-5 dark:bg-zinc-950/30"
                 @if ($messages->currentPage() === 1) x-data x-init="$nextTick(() => { $el.scrollTop = $el.scrollHeight })" @endif
             >
                 @if ($messages->hasMorePages() || $messages->previousPageUrl())
@@ -54,7 +54,7 @@
                 @endforeach
             </div>
 
-            <form method="POST" action="{{ route('inbox.reply', $conversation) }}" class="border-t border-zinc-200 p-4 dark:border-zinc-700">
+            <form data-reply-composer method="POST" action="{{ route('inbox.reply', $conversation) }}" class="shrink-0 border-t border-zinc-200 bg-white p-4 dark:border-zinc-700 dark:bg-zinc-900">
                 @csrf
                 <label for="body" class="sr-only">Reply</label>
                 <div class="flex items-end gap-3">
