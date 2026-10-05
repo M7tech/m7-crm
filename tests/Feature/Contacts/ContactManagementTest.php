@@ -44,8 +44,11 @@ class ContactManagementTest extends TestCase
             'first_name' => 'Sara',
             'last_name' => 'Ahmed',
             'job_title' => 'Purchasing Manager',
+            'organization_name' => 'Atlas Trading',
             'email' => 'sara@example.com',
             'phone' => '07500000000',
+            'city' => 'Erbil',
+            'category' => 'engineer',
             'status' => 'active',
             'notes' => 'Prefers morning calls.',
         ]);
@@ -58,6 +61,9 @@ class ContactManagementTest extends TestCase
             'tenant_id' => $tenant->id,
             'company_id' => $company->id,
             'first_name' => 'Sara',
+            'organization_name' => 'Atlas Trading',
+            'city' => 'Erbil',
+            'category' => 'engineer',
         ]);
     }
 

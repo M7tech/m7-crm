@@ -20,8 +20,11 @@ class ContactFactory extends Factory
             'first_name' => fake()->firstName(),
             'last_name' => fake()->lastName(),
             'job_title' => fake()->optional()->jobTitle(),
+            'organization_name' => fake()->optional()->company(),
             'email' => fake()->optional()->safeEmail(),
             'phone' => fake()->optional()->phoneNumber(),
+            'city' => fake()->optional()->city(),
+            'category' => fake()->optional()->randomElement(['client', 'trader', 'plumber', 'engineer']),
             'status' => 'active',
             'notes' => fake()->optional()->sentence(),
         ];

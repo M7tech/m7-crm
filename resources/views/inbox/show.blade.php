@@ -30,6 +30,31 @@
                 class="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto overscroll-contain bg-zinc-50/70 p-5 dark:bg-zinc-950/30"
                 @if ($messages->currentPage() === 1) x-data x-init="$nextTick(() => { $el.scrollTop = $el.scrollHeight })" @endif
             >
+                <details class="sticky top-0 z-10 mb-2 shrink-0 rounded-xl border border-violet-200 bg-violet-50/95 shadow-sm backdrop-blur dark:border-violet-900 dark:bg-violet-950/95" @if (! $conversation->contact) open @endif>
+                    <summary class="cursor-pointer px-4 py-3 text-sm font-semibold text-violet-900 dark:text-violet-100">
+                        {{ $conversation->contact ? __('Customer details').' · '.$conversation->contact->full_name : __('Review detected customer details') }}
+                    </summary>
+                    <form method="POST" action="{{ route('inbox.contact.save', $conversation) }}" class="grid gap-3 border-t border-violet-200 p-4 sm:grid-cols-2 dark:border-violet-900">
+                        @csrf
+                        @php($profile = $conversation->contact ?? (object) $suggestedContact)
+                        <flux:input name="first_name" :label="__('First name')" :value="old('first_name', $profile->first_name)" required />
+                        <flux:input name="last_name" :label="__('Last name')" :value="old('last_name', $profile->last_name)" />
+                        <flux:input name="phone" :label="__('Phone')" :value="old('phone', $profile->phone)" />
+                        <flux:input name="email" type="email" :label="__('Email')" :value="old('email', $profile->email)" />
+                        <flux:input name="city" :label="__('City')" :value="old('city', $profile->city)" />
+                        <flux:input name="organization_name" :label="__('Customer company (optional)')" :value="old('organization_name', $profile->organization_name)" />
+                        <div class="sm:col-span-2">
+                            <label for="category" class="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ __('Customer type or category') }}</label>
+                            <input id="category" name="category" value="{{ old('category', $profile->category) }}" list="conversation-categories" maxlength="100" placeholder="{{ __('client, trader, plumber, engineer, or another category') }}" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                            <datalist id="conversation-categories"><option value="client"><option value="trader"><option value="plumber"><option value="engineer"><option value="contractor"><option value="architect"></datalist>
+                        </div>
+                        <div class="flex items-center justify-between gap-3 sm:col-span-2">
+                            <p class="text-xs text-violet-700 dark:text-violet-300">{{ __('Detected values are suggestions. Review them before saving.') }}</p>
+                            <flux:button type="submit" variant="primary">{{ $conversation->contact ? __('Update contact') : __('Save contact') }}</flux:button>
+                        </div>
+                    </form>
+                </details>
+
                 @if ($messages->hasMorePages() || $messages->previousPageUrl())
                     <nav aria-label="Conversation history" class="mb-2 flex items-center justify-center gap-3 text-sm">
                         @if ($messages->previousPageUrl())

@@ -26,6 +26,9 @@
                     'Status' => ucfirst($contact->status),
                     'Email' => $contact->email ?: '—',
                     'Phone' => $contact->phone ?: '—',
+                    __('City') => $contact->city ?: '—',
+                    __('Customer category') => $contact->category ?: '—',
+                    __('Customer company') => $contact->organization_name ?: '—',
                     'Job title' => $contact->job_title ?: '—',
                     'Added' => $contact->created_at->format('M j, Y'),
                 ] as $label => $value)

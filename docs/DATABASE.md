@@ -40,6 +40,8 @@ This application layer must be backed by tests for every tenant-owned module. Po
 
 The `contacts` table carries both `tenant_id` and `company_id`. Contact form validation requires the selected company to belong to the authenticated tenant, so a cross-tenant company ID cannot create an invalid association.
 
+Contacts may also store the customer's stated organization, city, and a free-form category such as client, trader, plumber, or engineer. Inbox conversations deterministically suggest these fields from a bounded set of recent inbound messages. A CRM user must review and save the values; webhook text never writes trusted contact fields automatically. Saving creates or updates the tenant-owned contact and links it to the conversation in one transaction.
+
 The `invitations` table stores only a SHA-256 hash of each 384-bit random acceptance token. Invitations expire after seven days and record acceptance. Guest token acceptance is the documented exception to ordinary tenant-scoped lookup: the high-entropy token authorizes only its matching unexpired invitation, and user creation plus acceptance are committed in one transaction.
 
 The `contact_imports` table records the source filename, importer, selected duplicate strategy, row counts, validation failures, and completion time. Preview rows are retained in tenant/user-bound cache for 30 minutes and are never stored in the audit table. Import execution locks the audit record and writes contacts in one transaction to prevent replay or partial imports.

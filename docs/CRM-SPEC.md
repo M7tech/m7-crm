@@ -64,6 +64,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 
 - Facebook Messenger text messages in a tenant-isolated unified inbox, including signed/idempotent webhook ingestion, queued replies, and paginated historical conversation import (complete)
 - Facebook Page comments in the tenant-isolated unified inbox with signed/idempotent `feed` webhook ingestion and queued public replies (complete)
+- Reviewed Inbox contact capture with deterministic phone, city, organization, and customer-category suggestions from recent inbound messages and comments (complete)
 - Instagram professional messaging in the unified inbox (deferred until publishing work resumes)
 - WhatsApp Cloud API and approved message templates (deferred until publishing work resumes)
 

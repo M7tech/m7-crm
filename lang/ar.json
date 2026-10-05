@@ -229,5 +229,17 @@
     "Agent-attributed outcomes": "النتائج المنسوبة للوكلاء",
     "Statistical attribution only; agents do not receive CRM access.": "إسناد إحصائي فقط؛ لا يحصل الوكلاء على صلاحية دخول CRM.",
     "Disconnected Page": "صفحة غير متصلة",
-    "Unknown company": "شركة غير معروفة"
+    "Unknown company": "شركة غير معروفة",
+    "Organization (optional)": "شركة العميل (اختياري)",
+    "Customer category": "فئة العميل",
+    "Customer company": "شركة العميل",
+    "Customer company (optional)": "شركة العميل (اختياري)",
+    "Customer details": "بيانات العميل",
+    "Review detected customer details": "راجع بيانات العميل المكتشفة",
+    "Customer type or category": "نوع أو فئة العميل",
+    "client, trader, plumber, engineer, or another category": "عميل، تاجر، سباك، مهندس، أو فئة أخرى",
+    "Detected values are suggestions. Review them before saving.": "القيم المكتشفة مقترحات. راجعها قبل الحفظ.",
+    "Update contact": "تحديث جهة الاتصال",
+    "Save contact": "حفظ جهة الاتصال",
+    "Customer details saved to :name.": "حُفظت بيانات العميل في سجل :name."
 }

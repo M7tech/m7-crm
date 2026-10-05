@@ -80,6 +80,7 @@ Route::middleware(['auth', 'verified', 'tenant'])->group(function () {
     Route::resource('tasks', TaskController::class)->except(['destroy']);
     Route::get('inbox', [InboxController::class, 'index'])->name('inbox.index');
     Route::get('inbox/{conversation}', [InboxController::class, 'show'])->name('inbox.show');
+    Route::post('inbox/{conversation}/contact', [InboxController::class, 'saveContact'])->name('inbox.contact.save');
     Route::post('inbox/{conversation}/messages', [InboxController::class, 'reply'])->name('inbox.reply');
     Route::get('reports', ReportController::class)->name('reports.index');
     Route::get('agents', [AgentController::class, 'index'])->name('agents.index');

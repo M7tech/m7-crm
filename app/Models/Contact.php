@@ -16,14 +16,17 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string $first_name
  * @property string|null $last_name
  * @property string|null $job_title
+ * @property string|null $organization_name
  * @property string|null $email
  * @property string|null $phone
+ * @property string|null $city
+ * @property string|null $category
  * @property string $status
  * @property string|null $notes
  * @property-read string $full_name
  * @property-read Company $company
  */
-#[Fillable(['company_id', 'first_name', 'last_name', 'job_title', 'email', 'phone', 'status', 'notes'])]
+#[Fillable(['company_id', 'first_name', 'last_name', 'job_title', 'organization_name', 'email', 'phone', 'city', 'category', 'status', 'notes'])]
 class Contact extends Model
 {
     /** @use HasFactory<ContactFactory> */

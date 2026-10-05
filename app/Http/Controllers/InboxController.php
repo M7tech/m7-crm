@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\SaveConversationContactRequest;
 use App\Http\Requests\StoreConversationReplyRequest;
 use App\Jobs\SendMetaCommentReply;
 use App\Jobs\SendMetaMessage;
+use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Message;
+use App\Services\ConversationContactExtractor;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -23,12 +26,13 @@ class InboxController extends Controller
         ]);
     }
 
-    public function show(int $conversation): View
+    public function show(int $conversation, ConversationContactExtractor $extractor): View
     {
         $conversationModel = Conversation::query()
             ->with([
                 'integration:id,tenant_id,external_account_name',
                 'company:id,tenant_id,name',
+                'contact:id,tenant_id,company_id,first_name,last_name,email,phone,organization_name,city,category',
             ])
             ->findOrFail($conversation);
         $this->authorize('view', $conversationModel);
@@ -41,11 +45,48 @@ class InboxController extends Controller
             ->withQueryString();
         $messages->setCollection($messages->getCollection()->reverse()->values());
 
+        $suggestedContact = $extractor->extract(
+            $conversationModel->messages()
+                ->where('direction', 'inbound')
+                ->whereNotNull('body')
+                ->latest('sent_at')
+                ->limit(100)
+                ->pluck('body')
+                ->reverse()
+                ->values(),
+            $conversationModel->participant_name,
+        );
+
         return view('inbox.show', [
             'conversation' => $conversationModel,
             'conversations' => $this->conversations()->limit(50)->get(),
             'messages' => $messages,
+            'suggestedContact' => $suggestedContact,
         ]);
+    }
+
+    public function saveContact(SaveConversationContactRequest $request, int $conversation): RedirectResponse
+    {
+        $contact = DB::transaction(function () use ($request): Contact {
+            $conversationModel = Conversation::query()->lockForUpdate()->findOrFail($request->conversation()->id);
+            $contact = $conversationModel->contact;
+
+            if ($contact) {
+                $contact->update($request->validated());
+            } else {
+                $contact = Contact::create([
+                    ...$request->validated(),
+                    'company_id' => $conversationModel->company_id,
+                    'status' => 'active',
+                ]);
+                $conversationModel->update(['contact_id' => $contact->id]);
+            }
+
+            return $contact;
+        });
+
+        return to_route('inbox.show', $request->conversation())
+            ->with('status', __('Customer details saved to :name.', ['name' => $contact->full_name]));
     }
 
     public function reply(StoreConversationReplyRequest $request, int $conversation): RedirectResponse

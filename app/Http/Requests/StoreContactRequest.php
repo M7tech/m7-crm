@@ -25,8 +25,11 @@ class StoreContactRequest extends FormRequest
             'first_name' => ['required', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'job_title' => ['nullable', 'string', 'max:120'],
+            'organization_name' => ['nullable', 'string', 'max:160'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:40'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'category' => ['nullable', 'string', 'max:100'],
             'status' => ['required', Rule::in(['active', 'inactive'])],
             'notes' => ['nullable', 'string', 'max:2000'],
         ];

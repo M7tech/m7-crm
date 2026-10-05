@@ -10,6 +10,7 @@ use App\Jobs\SendMetaMessage;
 use App\Jobs\SyncMetaConversationMessages;
 use App\Jobs\SyncMetaMessageHistory;
 use App\Models\Company;
+use App\Models\Contact;
 use App\Models\Conversation;
 use App\Models\Integration;
 use App\Models\Message;
@@ -142,6 +143,9 @@ class MessengerInboxTest extends TestCase
         $this->actingAs($otherUser)->get(route('inbox.index'))->assertOk()->assertDontSee('Hello from Facebook');
         $this->actingAs($otherUser)->get(route('inbox.show', $conversation))->assertNotFound();
         $this->actingAs($otherUser)->post(route('inbox.reply', $conversation), ['body' => 'Forbidden'])->assertNotFound();
+        $this->actingAs($otherUser)->post(route('inbox.contact.save', $conversation), [
+            'first_name' => 'Forbidden',
+        ])->assertNotFound();
     }
 
     public function test_conversation_history_is_loaded_in_bounded_newest_first_pages(): void
@@ -206,6 +210,36 @@ class MessengerInboxTest extends TestCase
         $message->refresh();
         $this->assertSame('sent', $message->status);
         $this->assertSame('outbound-123', $message->external_id);
+    }
+
+    public function test_user_can_review_and_save_customer_details_from_a_conversation(): void
+    {
+        $integration = $this->integration();
+        $conversation = $this->conversation($integration);
+        $tenant = Tenant::query()->findOrFail($integration->tenant_id);
+        $user = User::factory()->for($tenant)->create();
+
+        $this->actingAs($user)->get(route('inbox.show', $conversation))
+            ->assertOk()
+            ->assertSee('Review detected customer details');
+
+        $this->actingAs($user)->post(route('inbox.contact.save', $conversation), [
+            'first_name' => 'Karim',
+            'last_name' => 'Ali',
+            'phone' => '07701234567',
+            'email' => 'karim@example.com',
+            'organization_name' => 'Atlas Trading',
+            'city' => 'Erbil',
+            'category' => 'engineer',
+        ])->assertSessionHasNoErrors()->assertRedirect(route('inbox.show', $conversation));
+
+        $contact = Contact::query()->sole();
+        $this->assertSame($tenant->id, $contact->tenant_id);
+        $this->assertSame($integration->company_id, $contact->company_id);
+        $this->assertSame('Atlas Trading', $contact->organization_name);
+        $this->assertSame('Erbil', $contact->city);
+        $this->assertSame('engineer', $contact->category);
+        $this->assertSame($contact->id, $conversation->refresh()->contact_id);
     }
 
     public function test_company_admin_can_queue_message_history_but_manager_cannot(): void

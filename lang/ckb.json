@@ -229,5 +229,17 @@
     "Agent-attributed outcomes": "ئەنجامە تەرخانکراوەکانی بریکار",
     "Statistical attribution only; agents do not receive CRM access.": "تەنها تەرخانکردنی ئاماری؛ بریکارەکان دەستیان بە CRM ناگات.",
     "Disconnected Page": "پەڕەی پچڕاو",
-    "Unknown company": "کۆمپانیای نەناسراو"
+    "Unknown company": "کۆمپانیای نەناسراو",
+    "Organization (optional)": "کۆمپانیای کڕیار (ئارەزوومەندانە)",
+    "Customer category": "پۆلی کڕیار",
+    "Customer company": "کۆمپانیای کڕیار",
+    "Customer company (optional)": "کۆمپانیای کڕیار (ئارەزوومەندانە)",
+    "Customer details": "زانیارییەکانی کڕیار",
+    "Review detected customer details": "پێداچوونەوە بە زانیارییە دۆزراوەکانی کڕیاردا بکە",
+    "Customer type or category": "جۆر یان پۆلی کڕیار",
+    "client, trader, plumber, engineer, or another category": "کڕیار، بازرگان، بۆریچی، ئەندازیار، یان پۆلێکی تر",
+    "Detected values are suggestions. Review them before saving.": "بەها دۆزراوەکان پێشنیارن. پێش پاشەکەوتکردن پێداچوونەوەیان پێدا بکە.",
+    "Update contact": "نوێکردنەوەی پەیوەندی",
+    "Save contact": "پاشەکەوتکردنی پەیوەندی",
+    "Customer details saved to :name.": "زانیارییەکانی کڕیار لە تۆماری :name پاشەکەوت کرا."
 }

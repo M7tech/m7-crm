@@ -17,7 +17,11 @@
     <flux:input name="first_name" :label="__('First name')" :value="old('first_name', $contact?->first_name)" required />
     <flux:input name="last_name" :label="__('Last name')" :value="old('last_name', $contact?->last_name)" />
     <flux:input name="job_title" :label="__('Job title')" :value="old('job_title', $contact?->job_title)" />
+    <flux:input name="organization_name" :label="__('Organization (optional)')" :value="old('organization_name', $contact?->organization_name)" />
     <flux:input name="phone" :label="__('Phone')" :value="old('phone', $contact?->phone)" />
+    <flux:input name="city" :label="__('City')" :value="old('city', $contact?->city)" />
+    <flux:input name="category" :label="__('Customer category')" :value="old('category', $contact?->category)" list="contact-categories" />
+    <datalist id="contact-categories"><option value="client"><option value="trader"><option value="plumber"><option value="engineer"><option value="contractor"><option value="architect"></datalist>
     <flux:input name="email" type="email" :label="__('Email')" :value="old('email', $contact?->email)" class="sm:col-span-2" />
 
     <div class="sm:col-span-2">
