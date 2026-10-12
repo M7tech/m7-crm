@@ -22,7 +22,7 @@ RUN npm run build
 
 FROM dunglas/frankenphp:1-php8.4-alpine
 
-RUN install-php-extensions pdo_pgsql redis pcntl intl zip opcache \
+RUN install-php-extensions pdo_pgsql pdo_sqlite redis pcntl intl zip opcache \
     && apk add --no-cache \
         imagemagick \
         imagemagick-jpeg \
@@ -40,7 +40,7 @@ COPY --from=assets /app/public/build /app/public/build
 COPY --from=assets /app/public/ocr /app/public/ocr
 COPY Caddyfile /etc/caddy/Caddyfile
 
-RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs \
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/views storage/logs storage/app/local-whatsapp/attachments \
     && chown -R www-data:www-data storage bootstrap/cache
 
 EXPOSE 80

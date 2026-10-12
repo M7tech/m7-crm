@@ -4,7 +4,21 @@
 }
 
 :80 {
-    root * /app/public
     encode zstd gzip
-    php_server
+
+    @senderRoot path /local-whatsapp
+    redir @senderRoot /local-whatsapp/ 308
+
+    @senderPrivate path /local-whatsapp/data/*
+    respond @senderPrivate 404
+
+    handle_path /local-whatsapp/* {
+        root * /app/local-whatsapp
+        php_server
+    }
+
+    handle {
+        root * /app/public
+        php_server
+    }
 }
