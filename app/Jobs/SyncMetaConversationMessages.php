@@ -64,6 +64,7 @@ class SyncMetaConversationMessages implements ShouldQueue
             }
 
             $latest = $conversation->last_message_at?->toImmutable();
+            $latestInbound = $conversation->last_inbound_at?->toImmutable();
             foreach ($page['data'] as $item) {
                 $externalId = $item['id'] ?? null;
                 if (! is_string($externalId) || $externalId === '') {
@@ -96,10 +97,20 @@ class SyncMetaConversationMessages implements ShouldQueue
                 if ($latest === null || $sentAt->greaterThan($latest)) {
                     $latest = $sentAt;
                 }
+
+                if ($direction === 'inbound' && ($latestInbound === null || $sentAt->greaterThan($latestInbound))) {
+                    $latestInbound = $sentAt;
+                }
             }
 
             if ($latest !== null && ($conversation->last_message_at === null || $latest->greaterThan($conversation->last_message_at))) {
                 $conversation->update(['last_message_at' => $latest]);
+            }
+
+            // Imported history records when the customer last wrote, but it
+            // never reopens a conversation that an employee already resolved.
+            if ($latestInbound !== null && ($conversation->last_inbound_at === null || $latestInbound->greaterThan($conversation->last_inbound_at))) {
+                $conversation->update(['last_inbound_at' => $latestInbound]);
             }
         });
 

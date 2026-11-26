@@ -13,6 +13,28 @@
     </div>
 
     <div>
+        <label for="company_id" class="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ __("Customer company") }} <span class="font-normal text-zinc-500">({{ __("optional") }})</span></label>
+        <select id="company_id" name="company_id" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+            <option value="">{{ __("No related company") }}</option>
+            @foreach ($companies as $company)
+                <option value="{{ $company->id }}" @selected((string) old("company_id", $task?->company_id) === (string) $company->id)>{{ $company->name }}</option>
+            @endforeach
+        </select>
+        @error("company_id") <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
+        <label for="contact_id" class="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">{{ __("Contact") }} <span class="font-normal text-zinc-500">({{ __("optional") }})</span></label>
+        <select id="contact_id" name="contact_id" class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+            <option value="">{{ __("No related contact") }}</option>
+            @foreach ($contacts as $contact)
+                <option value="{{ $contact->id }}" @selected((string) old("contact_id", $task?->contact_id ?? $selectedContactId) === (string) $contact->id)>{{ $contact->full_name }} — {{ $contact->company?->name }}</option>
+            @endforeach
+        </select>
+        @error("contact_id") <p class="mt-1 text-sm text-red-600 dark:text-red-400">{{ $message }}</p> @enderror
+    </div>
+
+    <div>
         <label for="assigned_to_id" class="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">Assigned to</label>
         <select id="assigned_to_id" name="assigned_to_id" required class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
             @foreach ($members as $member)
@@ -28,7 +50,7 @@
     <div class="sm:col-span-2">
         <label for="priority" class="mb-2 block text-sm font-medium text-zinc-800 dark:text-zinc-200">Priority</label>
         <select id="priority" name="priority" required class="block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
-            @foreach (['low' => 'Low', 'normal' => 'Normal', 'high' => 'High', 'urgent' => 'Urgent'] as $value => $label)
+            @foreach (['low' => __('Low'), 'normal' => __('Normal'), 'high' => __('High'), 'urgent' => __('Urgent')] as $value => $label)
                 <option value="{{ $value }}" @selected(old('priority', $task?->priority ?? 'normal') === $value)>{{ $label }}</option>
             @endforeach
         </select>

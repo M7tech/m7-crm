@@ -22,8 +22,10 @@ Production uses PostgreSQL. SQLite is retained only for fast local development a
 | `task_activities` | Tenant | Immutable audit trail for task creation, edits, completion, and reopening |
 | `integrations` | Tenant | Encrypted provider credentials, external account details, and CRM routing configuration |
 | `webhook_events` | Tenant | Idempotent provider event ledger, processing status, and retained payload metadata |
-| `conversations` | Tenant | Channel threads linked to an integration, CRM company, and optional contact |
-| `messages` | Tenant | Inbound and outbound channel messages with provider delivery state and retained payload metadata |
+| `conversations` | Tenant | Channel threads linked to an integration, CRM company, optional contact, and optional assignee, with open/pending/resolved status |
+| `messages` | Tenant | Inbound and outbound channel messages with sender, provider delivery state, bounded failure reason, and retained payload metadata |
+| `conversation_reads` | Tenant | Per-user last-read time used for unread filtering in the shared queue |
+| `conversation_activities` | Tenant | Immutable internal notes and audit trail for assignment, status, replies, failures, contact links, and tasks |
 | `automation_rules` | Tenant | Active or paused lead-stage rules that create follow-up tasks |
 | `automation_runs` | Tenant | Idempotent execution audit linking a rule and lead activity to its created task |
 | `system_health_checks` | Platform | Latest scheduler and queue-worker heartbeats for operational monitoring |
@@ -76,6 +78,16 @@ The tenant `status` is enforced on every tenant workspace request; suspended ten
 
 `system_health_checks` is a platform-owned exception to tenant scoping. The scheduler updates its heartbeat every minute and dispatches a second queued heartbeat; freshness of both records distinguishes scheduler failure from queue-worker failure. Only explicit super admins can view the operations dashboard, which combines these heartbeats with database and Redis probes, queue depth, and bounded summaries of failed jobs, webhooks, and automation runs. Provider payloads and credentials are never displayed.
 
+Team-inbox collaboration (migration `2026_11_26_000001_add_team_inbox_collaboration`) adds `assigned_to_id`, `assigned_at`, `last_inbound_at`, and `resolved_at` to `conversations`, with tenant-prefixed indexes for assignee/status, integration, and channel queue filters. Existing rows are backfilled with their latest inbound message time. `conversation_reads` stores one row per conversation and user; a conversation is unread for a user when its `last_inbound_at` is newer than that user's `last_read_at`. `conversation_activities` is append-only like `lead_activities` and `task_activities`; the model refuses updates and deletes. Internal notes are stored only there and are never written to `messages` or sent to a provider.
+
+Assignment, status changes, notes, replies, contact links, and task creation lock the conversation row and write their activity in the same transaction. Replies record `sent_by_id`; the queued send job stores a bounded, employee-readable `error` and never stores tokens or raw provider responses there. The job's `failed` hook resolves the tenant from its constructor argument before touching the message.
+
+`messages.sent_by_id`, `conversations.assigned_to_id`, and the integration audit columns use `nullOnDelete` so removing a user never removes customer history. `integrations` gains `connected_by_id`, `disconnected_at`, and `disconnected_by_id`; disconnecting clears the encrypted Page and user tokens but keeps the app secret so webhook signatures can still be verified and ignored.
+
+`tasks` gains nullable `company_id`, `contact_id`, and `conversation_id` foreign keys with tenant-prefixed indexes. Form validation requires each to exist in the authenticated tenant and a selected contact to belong to the selected company. Tasks created from the inbox derive these links from the conversation on the server. Task status adds `in_progress`; `Task::OPEN_STATUSES` (`pending`, `in_progress`) drives due, overdue, reminder, dashboard, and report queries.
+
+Inbox presence ("also viewing") is advisory and stored only in the cache under a tenant- and conversation-specific key that expires after one minute.
+
 ## Planned tables
 
-The next milestones will add broader `activities` and `notes`. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.
+The next milestones will add broader company-level `activities` and `notes`, and a company detail page that aggregates contacts, leads, tasks, and conversations. Each tenant-owned table will carry `tenant_id` directly, including child records, so isolation does not depend on multi-table joins.

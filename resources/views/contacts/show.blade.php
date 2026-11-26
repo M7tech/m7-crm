@@ -46,6 +46,40 @@
             @endif
         </section>
 
+        <div class="grid gap-6 md:grid-cols-2">
+            <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Social conversations') }}</h2>
+                <ul class="mt-3 space-y-2">
+                    @forelse ($conversations as $conversation)
+                        <li class="flex items-center justify-between gap-3 text-sm">
+                            <a href="{{ route('inbox.show', $conversation) }}" class="min-w-0 truncate font-medium text-blue-600 hover:underline">{{ $conversation->channelLabel() }} · {{ $conversation->integration?->external_account_name }}</a>
+                            <span class="shrink-0 text-xs text-zinc-500">{{ __(ucfirst($conversation->status)) }} · {{ $conversation->assignedTo?->name ?? __('Unassigned') }}</span>
+                        </li>
+                    @empty
+                        <li class="text-sm text-zinc-500">{{ __('No linked conversations.') }}</li>
+                    @endforelse
+                </ul>
+            </section>
+            <section class="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-700 dark:bg-zinc-900">
+                <div class="flex items-center justify-between">
+                    <h2 class="font-semibold text-zinc-950 dark:text-white">{{ __('Follow-up tasks') }}</h2>
+                    @can('create', \App\Models\Task::class)
+                        <a href="{{ route('tasks.create', ['contact' => $contact->id]) }}" class="text-sm font-medium text-emerald-700 dark:text-emerald-400" wire:navigate>{{ __('Add task') }}</a>
+                    @endcan
+                </div>
+                <ul class="mt-3 space-y-2">
+                    @forelse ($tasks as $task)
+                        <li class="flex items-center justify-between gap-3 text-sm">
+                            <a href="{{ route('tasks.show', $task) }}" class="min-w-0 truncate font-medium text-zinc-900 hover:underline dark:text-white" wire:navigate>{{ $task->title }}</a>
+                            <span class="shrink-0 text-xs {{ $task->isOverdue() ? 'text-red-600' : 'text-zinc-500' }}">{{ \App\Models\Task::statusLabel($task->status) }} · {{ $task->due_at->timezone($timezone)->format('M j') }}</span>
+                        </li>
+                    @empty
+                        <li class="text-sm text-zinc-500">{{ __('No tasks you can see for this contact.') }}</li>
+                    @endforelse
+                </ul>
+            </section>
+        </div>
+
         @can('delete', $contact)
             <section class="rounded-2xl border border-red-200 bg-white p-5 dark:border-red-900 dark:bg-zinc-900">
                 <h2 class="font-semibold text-zinc-950 dark:text-white">Delete contact</h2>

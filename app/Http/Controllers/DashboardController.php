@@ -20,8 +20,7 @@ class DashboardController extends Controller
         CurrentTenant $currentTenant,
         PlanEntitlements $plans,
         WorkspaceOnboarding $onboarding,
-    ): View
-    {
+    ): View {
         $tenant = $currentTenant->tenant();
         $timezone = $tenant?->timezone ?? 'Asia/Baghdad';
         $startOfToday = CarbonImmutable::now($timezone)->startOfDay()->utc();
@@ -32,8 +31,8 @@ class DashboardController extends Controller
             'tenant' => $tenant,
             'companyCount' => Company::query()->count(),
             'openLeadCount' => Lead::query()->whereHas('stage', fn ($query) => $query->where('type', 'open'))->count(),
-            'dueTodayCount' => (clone $visibleTasks)->where('status', 'pending')->whereBetween('due_at', [$startOfToday, $endOfToday])->count(),
-            'overdueTaskCount' => (clone $visibleTasks)->where('status', 'pending')->where('due_at', '<', now())->count(),
+            'dueTodayCount' => (clone $visibleTasks)->whereIn('status', Task::OPEN_STATUSES)->whereBetween('due_at', [$startOfToday, $endOfToday])->count(),
+            'overdueTaskCount' => (clone $visibleTasks)->whereIn('status', Task::OPEN_STATUSES)->where('due_at', '<', now())->count(),
             'recentCompanies' => Company::query()->latest()->limit(5)->get(),
             'planName' => $tenant ? $plans->label($tenant) : null,
             'planUsage' => $tenant && $request->user()->role === UserRole::CompanyAdmin ? $plans->summary($tenant) : null,

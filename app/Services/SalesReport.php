@@ -48,7 +48,7 @@ class SalesReport
                 'created' => $createdTasks->count(),
                 'completed' => $completedTasks,
                 'completion_rate' => $createdTasks->isNotEmpty() ? round(($completedTasks / $createdTasks->count()) * 100, 1) : 0.0,
-                'overdue' => Task::query()->visibleTo($user)->where('status', 'pending')->where('due_at', '<', now())->count(),
+                'overdue' => Task::query()->visibleTo($user)->whereIn('status', Task::OPEN_STATUSES)->where('due_at', '<', now())->count(),
             ],
         ];
     }

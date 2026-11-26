@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Enums\UserRole;
+use App\Models\Contact;
 use App\Models\Task;
 use Carbon\CarbonImmutable;
 use Illuminate\Foundation\Http\FormRequest;
@@ -25,6 +26,8 @@ class StoreTaskRequest extends FormRequest
             'title' => ['required', 'string', 'max:180'],
             'description' => ['nullable', 'string', 'max:3000'],
             'lead_id' => ['nullable', 'integer', Rule::exists('leads', 'id')->where('tenant_id', $tenantId)],
+            'company_id' => ['nullable', 'integer', Rule::exists('companies', 'id')->where('tenant_id', $tenantId)],
+            'contact_id' => ['nullable', 'integer', Rule::exists('contacts', 'id')->where('tenant_id', $tenantId)],
             'assigned_to_id' => ['required', 'integer', Rule::exists('users', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)->where('status', 'active'))],
             'due_at' => ['required', 'date'],
             'reminder_at' => ['nullable', 'date'],
@@ -38,6 +41,13 @@ class StoreTaskRequest extends FormRequest
         return [function (Validator $validator): void {
             if ($this->user()?->role === UserRole::Salesperson && $this->integer('assigned_to_id') !== $this->user()?->id) {
                 $validator->errors()->add('assigned_to_id', 'Salespeople can assign tasks only to themselves.');
+            }
+
+            if ($this->filled('contact_id') && $this->filled('company_id') && ! $validator->errors()->has('contact_id')) {
+                $contactCompanyId = Contact::query()->whereKey($this->integer('contact_id'))->value('company_id');
+                if ($contactCompanyId !== null && (int) $contactCompanyId !== $this->integer('company_id')) {
+                    $validator->errors()->add('contact_id', __('The selected contact does not belong to the selected company.'));
+                }
             }
 
             if ($this->filled('reminder_at') && $this->filled('due_at')) {

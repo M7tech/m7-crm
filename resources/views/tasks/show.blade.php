@@ -5,15 +5,22 @@
                 <a href="{{ route('tasks.index') }}" class="text-sm font-medium text-emerald-700 hover:text-emerald-800 dark:text-emerald-400" wire:navigate>← Back to tasks</a>
                 <div class="mt-3 flex flex-wrap items-center gap-2">
                     <h1 class="text-2xl font-semibold tracking-tight text-zinc-950 dark:text-white">{{ $task->title }}</h1>
-                    <span class="rounded-full px-2 py-1 text-xs font-semibold {{ $task->status === 'completed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' }}">{{ ucfirst($task->status) }}</span>
+                    <span class="rounded-full px-2 py-1 text-xs font-semibold {{ $task->status === 'completed' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' }}">{{ \App\Models\Task::statusLabel($task->status) }}</span>
                 </div>
             </div>
             <div class="flex gap-2">
                 <form method="POST" action="{{ route('tasks.status.update', $task) }}">
                     @csrf
                     @method('PUT')
-                    <input type="hidden" name="status" value="{{ $task->status === 'completed' ? 'pending' : 'completed' }}">
-                    <flux:button type="submit">{{ $task->status === 'completed' ? 'Reopen' : 'Complete' }}</flux:button>
+                    <label for="task-status" class="sr-only">{{ __('Task status') }}</label>
+                    <div class="flex gap-2">
+                        <select id="task-status" name="status" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 dark:border-zinc-600 dark:bg-zinc-800 dark:text-white">
+                            @foreach (\App\Models\Task::STATUSES as $status)
+                                <option value="{{ $status }}" @selected($task->status === $status)>{{ \App\Models\Task::statusLabel($status) }}</option>
+                            @endforeach
+                        </select>
+                        <flux:button type="submit">{{ __('Update status') }}</flux:button>
+                    </div>
                 </form>
                 <flux:button :href="route('tasks.edit', $task)" variant="primary" wire:navigate>Edit task</flux:button>
             </div>
@@ -32,7 +39,9 @@
                         'Assigned to' => $task->assignedTo?->name ?? 'Unassigned',
                         'Created by' => $task->createdBy?->name ?? 'System',
                         'Related lead' => $task->lead?->title ?? '—',
-                        'Company' => $task->lead?->company?->name ?? '—',
+                        'Company' => $task->company?->name ?? $task->lead?->company?->name ?? '—',
+                        __('Contact') => $task->contact?->full_name ?? '—',
+                        __('Conversation') => $task->conversation ? $task->conversation->participant_name.' · '.$task->conversation->channelLabel() : '—',
                         'Reminder' => $task->reminder_at?->timezone($timezone)->format('M j, Y H:i') ?? '—',
                         'Completed' => $task->completed_at?->timezone($timezone)->format('M j, Y H:i') ?? '—',
                     ] as $label => $value)
@@ -42,6 +51,11 @@
                         </div>
                     @endforeach
                 </dl>
+                @if ($task->conversation)
+                    <div class="border-b border-zinc-100 px-5 py-3 dark:border-zinc-800">
+                        <a href="{{ route('inbox.show', $task->conversation) }}" class="text-sm font-semibold text-blue-600 hover:underline">{{ __('Open the linked conversation') }} →</a>
+                    </div>
+                @endif
                 @if ($task->description)
                     <div class="px-5 py-5">
                         <h2 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">Notes</h2>

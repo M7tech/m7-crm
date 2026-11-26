@@ -2,17 +2,15 @@
 
 namespace App\Jobs;
 
+use App\Jobs\Concerns\DeliversMetaReply;
 use App\Models\Message;
-use App\Models\Tenant;
 use App\Services\MetaGraphClient;
-use App\Support\CurrentTenant;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Throwable;
 
 class SendMetaMessage implements ShouldQueue
 {
-    use Queueable;
+    use DeliversMetaReply, Queueable;
 
     public int $tries = 3;
 
@@ -24,26 +22,12 @@ class SendMetaMessage implements ShouldQueue
         public int $tenantId,
     ) {}
 
-    public function handle(MetaGraphClient $client, CurrentTenant $currentTenant): void
+    protected function deliver(MetaGraphClient $client, Message $message): string
     {
-        $currentTenant->set(Tenant::query()->findOrFail($this->tenantId));
-        $message = Message::query()->with('conversation.integration')->findOrFail($this->messageId);
-
-        if ($message->status === 'sent') {
-            return;
-        }
-
-        try {
-            $message->update(['status' => 'sending']);
-            $externalId = $client->sendMessage(
-                $message->conversation->integration,
-                $message->conversation->external_participant_id,
-                (string) $message->body,
-            );
-            $message->update(['external_id' => $externalId, 'status' => 'sent', 'sent_at' => now()]);
-        } catch (Throwable $exception) {
-            $message->update(['status' => 'failed']);
-            throw $exception;
-        }
+        return $client->sendMessage(
+            $message->conversation->integration,
+            $message->conversation->external_participant_id,
+            (string) $message->body,
+        );
     }
 }

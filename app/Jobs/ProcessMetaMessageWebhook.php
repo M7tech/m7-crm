@@ -85,7 +85,7 @@ class ProcessMetaMessageWebhook implements ShouldQueue
                 'sent_at' => $sentAt,
             ]);
 
-            $conversation->update(['last_message_at' => $sentAt]);
+            $conversation->recordInbound($sentAt);
             $locked->update(['status' => 'processed', 'processed_at' => now(), 'error' => null]);
         });
     }
