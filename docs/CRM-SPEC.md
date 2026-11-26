@@ -1,6 +1,6 @@
 # M7 CRM product specification
 
-Status: milestone 0.9 sellable-release controls complete; public launch preparation is in progress and additional messaging work remains deferred until Meta publishing
+Status: milestone 0.9 sellable-release controls complete; milestone 0.7 Facebook team-inbox collaboration and the shared task board are implemented (2026-11-26) and awaiting sandbox verification; Instagram and WhatsApp remain deferred until Meta publishing
 
 M7 CRM is a multi-company SaaS CRM for Iraqi sales teams. It will bring customer accounts, leads, follow-ups, social conversations, and later ERP context into one workspace. “M7 CRM” is the working name and can be changed without changing the architecture.
 
@@ -48,6 +48,7 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 ### 0.4 — Tasks, follow-ups, and reporting
 
 - Tenant-local tasks, queued reminders, overdue work, notes, and immutable activity history (complete)
+- My Tasks, team task list, and a Kanban board over the same task records with To do, In progress, and Done columns, drag-and-drop plus an accessible per-card status control, and optional company, contact, and conversation links (complete 2026-11-26)
 - Management dashboard and conversion reports with date-range, pipeline, owner, value, and task metrics (complete)
 - Statistical agent attribution on opportunities with won/lost, conversion, and separate-currency value reporting; agents receive no CRM access (complete)
 - English, Arabic, and Kurdish Sorani interface selection with persistent session preference and RTL layouts for Arabic-script locales (complete)
@@ -66,6 +67,8 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - Facebook Page comments in the tenant-isolated unified inbox with signed/idempotent `feed` webhook ingestion and queued public replies (complete)
 - Reviewed Inbox contact capture with deterministic phone, city, organization, and customer-category suggestions from recent inbound messages and comments (complete)
 - Open conversations update every two seconds; incoming messages/comments remain compatible with existing default-queue workers, and the Compose configuration also drains the legacy messaging queue (complete)
+- Team-inbox collaboration on Facebook (complete 2026-11-26, pending sandbox verification): shared queue filtered by status, channel, Page, assignee, and per-user unread state; assignment and reassignment; open, pending, and resolved status; internal notes; explicit public/private/internal composer labels; delivery status and classified send failures with the draft preserved; duplicate-reply guard and advisory presence; linking an existing contact or confirming a new one; creating a follow-up task from the conversation; linked conversations and tasks on the contact record; queue refresh every five seconds without a page reload; an immutable conversation audit trail; and Page disconnection that keeps customer data
+- Facebook private replies to comments and Page mentions (next Facebook increment; see capability matrix)
 - Instagram professional messaging in the unified inbox (deferred until publishing work resumes)
 - WhatsApp Cloud API and approved message templates (deferred until publishing work resumes)
 
@@ -88,6 +91,33 @@ Customer data from one tenant must never be visible, editable, searchable, expor
 - ERP, accounting, inventory, debt, and quotation integrations
 - Custom reporting and data migration services
 - AI voice receptionist and outbound calling, priced by usage
+
+## Facebook channel capabilities
+
+Checked against Meta's official Messenger Platform, Page webhook, comments, private-replies, webhook, rate-limit, and error-code documentation on 2026-11-26. Re-check before App Review.
+
+| Action | Meta API | Permissions and review | CRM status |
+|---|---|---|---|
+| Receive direct messages | `messages` Page webhook field | `pages_messaging`; `pages_manage_metadata` for webhook delivery | Supported |
+| Reply to direct messages | `POST /{page-id}/messages`, `messaging_type=RESPONSE` | `pages_messaging` needs App Review before non-role users can be messaged (error 200/2018028) | Supported inside the 24-hour standard window |
+| Replies after 24 hours | `HUMAN_AGENT` message tag (7 days) | Separate approval; exact requirement not confirmed in the fetched docs | Not supported; reply in Meta Business Suite |
+| Receive Page comments | `feed` Page webhook field | `pages_manage_metadata`; reading comment content requires the Page read permissions requested at connection | Supported |
+| Public reply to comments | `POST /{comment-id}/comments` | `pages_manage_engagement`; Page token from a person with the MODERATE task | Supported |
+| Private reply to a comment | `POST /{page-id}/messages` with `recipient.comment_id` | `pages_messaging`; one message within 7 days; Standard Access only reaches app-role users | Not built; shown as unsupported with a link to the post |
+| Page mentions | `mention` Page webhook field | Some IDs are withheld for privacy or missing permissions; replying via the API is unverified | Not built; handled on Facebook |
+| Delivery and read receipts | `message_deliveries`, `message_reads` | Messenger only | Not subscribed; CRM shows queued, sending, sent, or failed |
+
+Send failures are classified from Graph errors: code 190 marks the connection `reconnect_required`; codes 4, 17, 32, 613, 80001, 80006 and HTTP 429 release the job using `X-Business-Use-Case-Usage` when present; code 10 with subcode 2018278 or 2534022 is a closed messaging window; 551 is an unavailable recipient; other 10/200 errors indicate missing permission or review. Meta retries undelivered webhooks for up to 36 hours, so every event is deduplicated by provider ID before processing.
+
+## Team inbox and follow-up rules
+
+- Every active tenant user can read the shared queue. Company admins and sales managers can assign, reassign, change status, and reply on any conversation. A salesperson can claim an unassigned conversation, hand off or release one they own, and reply only when it is unassigned or theirs. Anyone on the team can add internal notes.
+- Replying to an unassigned conversation assigns it to the sender. A reply is refused, with the draft kept, when another outbound message was sent after the composer loaded; the sender may confirm and send anyway. Identical replies from the same person within one minute are sent once.
+- A new inbound customer message reopens a pending or resolved conversation. Imported history updates the last-inbound time but never reopens it.
+- Resolved conversations and conversations on disconnected Pages cannot be replied to until reopened or reconnected.
+- Disconnecting a Page removes stored Page and user tokens, pauses replies, and stops ingestion while keeping conversations, messages, leads, and webhook history. Deleting a connection remains a separate, explicitly confirmed action that removes its inbox data.
+- Tasks have three statuses: `pending` (To do), `in_progress`, and `completed` (Done). Both open statuses count toward due-today, overdue, dashboards, reports, and reminders.
+- Inbox lists refresh by polling (five seconds for the queue, two seconds for an open conversation). WebSocket broadcasting is deferred until polling load requires it.
 
 ## V1 non-goals
 

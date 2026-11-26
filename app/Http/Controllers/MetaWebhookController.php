@@ -53,7 +53,9 @@ class MetaWebhookController extends Controller
             }
 
             $pageConnection = $this->pageConnection($connection, $webhookId, (string) ($entry['id'] ?? ''));
-            if (! $pageConnection) {
+            // A disconnected Page is acknowledged but not ingested: the admin
+            // chose to stop CRM processing until the Page is reconnected.
+            if (! $pageConnection || $pageConnection->status === 'disconnected') {
                 continue;
             }
 

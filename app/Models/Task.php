@@ -12,11 +12,34 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['lead_id', 'assigned_to_id', 'created_by_id', 'title', 'description', 'due_at', 'reminder_at', 'reminder_sent_at', 'priority', 'status', 'completed_at'])]
+#[Fillable(['lead_id', 'company_id', 'contact_id', 'conversation_id', 'assigned_to_id', 'created_by_id', 'title', 'description', 'due_at', 'reminder_at', 'reminder_sent_at', 'priority', 'status', 'completed_at'])]
 class Task extends Model
 {
     /** @use HasFactory<TaskFactory> */
     use BelongsToTenant, HasFactory;
+
+    /** Board columns, in order. The same records back My Tasks, the team list, and the board. */
+    public const STATUSES = ['pending', 'in_progress', 'completed'];
+
+    /** Statuses that still need work and therefore count toward due, overdue, and reminders. */
+    public const OPEN_STATUSES = ['pending', 'in_progress'];
+
+    public const PRIORITIES = ['low', 'normal', 'high', 'urgent'];
+
+    public static function statusLabel(string $status): string
+    {
+        return match ($status) {
+            'pending' => __('To do'),
+            'in_progress' => __('In progress'),
+            'completed' => __('Done'),
+            default => ucfirst($status),
+        };
+    }
+
+    public function isOpen(): bool
+    {
+        return in_array($this->status, self::OPEN_STATUSES, true);
+    }
 
     protected function casts(): array
     {
@@ -25,7 +48,7 @@ class Task extends Model
 
     public function isOverdue(): bool
     {
-        return $this->status === 'pending' && $this->due_at->isPast();
+        return in_array($this->status, self::OPEN_STATUSES, true) && $this->due_at->isPast();
     }
 
     /** @param Builder<Task> $query @return Builder<Task> */
@@ -37,6 +60,24 @@ class Task extends Model
                 ->where('assigned_to_id', $user->id)
                 ->orWhere('created_by_id', $user->id)),
         );
+    }
+
+    /** @return BelongsTo<Company, $this> */
+    public function company(): BelongsTo
+    {
+        return $this->belongsTo(Company::class);
+    }
+
+    /** @return BelongsTo<Contact, $this> */
+    public function contact(): BelongsTo
+    {
+        return $this->belongsTo(Contact::class);
+    }
+
+    /** @return BelongsTo<Conversation, $this> */
+    public function conversation(): BelongsTo
+    {
+        return $this->belongsTo(Conversation::class);
     }
 
     /** @return BelongsTo<Lead, $this> */

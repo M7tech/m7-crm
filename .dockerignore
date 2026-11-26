@@ -7,3 +7,6 @@ vendor
 storage/logs/*
 database/database.sqlite
 tests
+local-whatsapp/data/*
+!local-whatsapp/data/.gitignore
+!local-whatsapp/data/.htaccess

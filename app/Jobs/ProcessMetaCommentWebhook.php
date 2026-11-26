@@ -102,9 +102,7 @@ class ProcessMetaCommentWebhook implements ShouldQueue
                 'sent_at' => $sentAt,
             ]);
 
-            if ($conversation->last_message_at === null || $sentAt->greaterThan($conversation->last_message_at)) {
-                $conversation->update(['last_message_at' => $sentAt]);
-            }
+            $conversation->recordInbound($sentAt);
             $locked->update(['status' => 'processed', 'processed_at' => now(), 'error' => null]);
         });
     }

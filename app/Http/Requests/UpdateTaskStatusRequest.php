@@ -18,6 +18,6 @@ class UpdateTaskStatusRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        return ['status' => ['required', Rule::in(['pending', 'completed'])]];
+        return ['status' => ['required', Rule::in(Task::STATUSES)]];
     }
 }

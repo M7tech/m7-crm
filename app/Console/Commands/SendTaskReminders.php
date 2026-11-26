@@ -19,7 +19,7 @@ class SendTaskReminders extends Command
         $currentTenant->allowGlobalAccess();
 
         $taskIds = Task::query()
-            ->where('status', 'pending')
+            ->whereIn('status', Task::OPEN_STATUSES)
             ->whereNotNull('reminder_at')
             ->whereNull('reminder_sent_at')
             ->where('reminder_at', '<=', now())
@@ -38,7 +38,7 @@ class SendTaskReminders extends Command
         DB::transaction(function () use ($taskId): void {
             $task = Task::query()->with('assignedTo')->lockForUpdate()->find($taskId);
 
-            if (! $task || $task->status !== 'pending' || $task->reminder_sent_at !== null || $task->reminder_at?->isFuture()) {
+            if (! $task || ! $task->isOpen() || $task->reminder_sent_at !== null || $task->reminder_at?->isFuture()) {
                 return;
             }
 

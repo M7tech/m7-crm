@@ -197,6 +197,9 @@ class MetaIntegrationController extends Controller
                 'comments_enabled' => $channels['comments'],
             ],
             'connected_at' => now(),
+            'connected_by_id' => $request->user()->id,
+            'disconnected_at' => null,
+            'disconnected_by_id' => null,
         ]);
 
         $status = $page['name'].' is connected to Meta Lead Ads.';
@@ -218,6 +221,27 @@ class MetaIntegrationController extends Controller
         $integration->delete();
 
         return to_route('integrations.meta.index')->with('status', $name.' was deleted.');
+    }
+
+    /**
+     * Revoke the CRM's stored Facebook tokens while keeping every
+     * conversation, message, lead, and webhook record for the tenant.
+     */
+    public function disconnect(Request $request, string $integration): RedirectResponse
+    {
+        $connection = $this->connection($integration);
+        $this->authorize('update', $connection);
+
+        $credentials = $connection->credentials;
+        unset($credentials['page_access_token'], $credentials['user_access_token']);
+        $connection->update([
+            'status' => 'disconnected',
+            'credentials' => $credentials,
+            'disconnected_at' => now(),
+            'disconnected_by_id' => $request->user()->id,
+        ]);
+
+        return to_route('integrations.meta.index')->with('status', __(':name was disconnected. Its conversations stay in the inbox, and replies are paused until it is reconnected.', ['name' => $connection->external_account_name ?: $connection->name]));
     }
 
     public function syncMessageHistory(string $integration): RedirectResponse

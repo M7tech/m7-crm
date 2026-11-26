@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Observers\LeadActivityObserver;
 use App\Support\CurrentTenant;
 use Carbon\CarbonImmutable;
+use Illuminate\Support\Facades\Bus;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +32,12 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         LeadActivity::observe(LeadActivityObserver::class);
+
+        // Jobs resolve their own tenant. Wrap every job so an in-process run
+        // (sync queue, dispatchSync) cannot leave that tenant set afterwards.
+        Bus::pipeThrough([
+            fn (mixed $command, \Closure $next): mixed => app(CurrentTenant::class)->isolate(fn (): mixed => $next($command)),
+        ]);
 
         if ($this->app->isProduction()) {
             URL::forceScheme('https');

@@ -119,7 +119,7 @@ class MessengerInboxTest extends TestCase
         $tenant = Tenant::query()->findOrFail($integration->tenant_id);
         $user = User::factory()->for($tenant)->create();
         $this->actingAs($user)
-            ->post(route('inbox.reply', $conversation), ['body' => 'Yes, it is available.'])
+            ->post(route('inbox.reply', $conversation), ['body' => 'Yes, it is available.', 'seen_message_id' => (int) Message::query()->max('id')])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('inbox.show', $conversation));
         Queue::assertPushed(SendMetaCommentReply::class);
@@ -161,6 +161,7 @@ class MessengerInboxTest extends TestCase
         $conversation = $this->conversation($integration);
         $tenant = Tenant::query()->findOrFail($integration->tenant_id);
         $user = User::factory()->for($tenant)->create();
+        app(CurrentTenant::class)->set($tenant);
         $message = $conversation->messages()->firstOrFail();
         $message->update(['body' => '<script>alert(1)</script>']);
 
@@ -220,7 +221,7 @@ class MessengerInboxTest extends TestCase
             ->assertSessionHasErrors(['body']);
 
         $this->actingAs($user)
-            ->post(route('inbox.reply', $conversation), ['body' => 'Yes, it is available.'])
+            ->post(route('inbox.reply', $conversation), ['body' => 'Yes, it is available.', 'seen_message_id' => (int) Message::query()->max('id')])
             ->assertSessionHasNoErrors()
             ->assertRedirect(route('inbox.show', $conversation));
 

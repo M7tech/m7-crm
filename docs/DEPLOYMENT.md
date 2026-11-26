@@ -28,6 +28,19 @@ Incoming Messenger and comment webhooks use the default queue so existing Coolif
 - Email verification and password reset work with the production mail provider.
 - A tenant-isolation smoke test is completed using two test companies.
 
+## Spreadsheet sender
+
+The protected spreadsheet sender is published by the same application container at `/local-whatsapp/`. Its user accounts, encrypted SMTP configuration, encryption key, and temporary attachments are isolated from the CRM and persist in the `sender_storage` volume mounted at `/app/storage/app/local-whatsapp`. Never expose or delete that volume during an ordinary redeploy.
+
+After the first deployment:
+
+1. Open `https://YOUR_DOMAIN/local-whatsapp/` and create the first local administrator.
+2. Sign in, open **Email settings**, and configure the production SMTP account.
+3. Create sender accounts from **Users**. Disable an account immediately when access is no longer required.
+4. Test with one internal recipient before using a spreadsheet batch.
+
+The sender accepts at most 100 email recipients per batch and a common attachment up to 5 MB. WhatsApp remains user-confirmed through WhatsApp Web; this standalone tool does not use or automate the WhatsApp Cloud API. Back up the `sender_storage` volume with the same care as other credential-bearing application storage. Local database files and encryption keys are excluded from both Git and the Docker build context.
+
 ## Meta Lead Ads
 
 Meta App IDs, secrets, and Page access tokens are managed from **CRM → Integrations → Meta Lead Ads** and stored encrypted in the database; they are not Coolify environment variables. A company admin creates the connection, copies the OAuth redirect URI and Page webhook callback/verify token shown by the CRM into the Meta developer app, and subscribes the `leadgen` webhook field. In **Facebook Login for Business → Configurations**, create a user-access-token configuration for Pages with `pages_show_list`, `pages_manage_metadata`, `pages_read_engagement`, and `leads_retrieval`, then save its Configuration ID in the CRM before using **Connect Facebook** to authorize and choose a Page.

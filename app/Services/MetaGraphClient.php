@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Integration;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\PendingRequest;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
@@ -182,7 +183,6 @@ class MetaGraphClient
     }
 
     /**
-     * @param  mixed  $result
      * @return array{data: array<int, array<string, mixed>>, after: ?string}
      */
     private function page(mixed $result): array
@@ -204,6 +204,10 @@ class MetaGraphClient
         return Http::baseUrl('https://graph.facebook.com/'.$integration->settings['graph_version'])
             ->acceptJson()
             ->timeout(20)
-            ->retry(2, 500);
+            // Retry only transport failures and provider 5xx responses. Client
+            // errors such as rate limits or expired tokens are classified by
+            // the caller instead of being repeated immediately.
+            ->retry(2, 500, fn (\Throwable $exception): bool => $exception instanceof ConnectionException
+                || ($exception instanceof RequestException && $exception->response->serverError()));
     }
 }

@@ -8,14 +8,24 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['public_id', 'provider', 'name', 'status', 'credentials', 'settings', 'external_account_id', 'external_account_name', 'company_id', 'pipeline_id', 'stage_id', 'assigned_to_id', 'connected_at'])]
+/**
+ * @property int $id
+ * @property int $tenant_id
+ * @property string $public_id
+ * @property string $status
+ * @property array<string, mixed> $credentials Encrypted at rest; never rendered back to forms.
+ * @property array<string, mixed> $settings
+ * @property string|null $external_account_id
+ * @property string|null $external_account_name
+ */
+#[Fillable(['public_id', 'provider', 'name', 'status', 'credentials', 'settings', 'external_account_id', 'external_account_name', 'company_id', 'pipeline_id', 'stage_id', 'assigned_to_id', 'connected_at', 'connected_by_id', 'disconnected_at', 'disconnected_by_id'])]
 class Integration extends Model
 {
     use BelongsToTenant;
 
     protected function casts(): array
     {
-        return ['credentials' => 'encrypted:array', 'settings' => 'array', 'connected_at' => 'datetime'];
+        return ['credentials' => 'encrypted:array', 'settings' => 'array', 'connected_at' => 'datetime', 'disconnected_at' => 'datetime'];
     }
 
     public function getRouteKeyName(): string
@@ -33,6 +43,18 @@ class Integration extends Model
     public function pipeline(): BelongsTo
     {
         return $this->belongsTo(Pipeline::class);
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function connectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'connected_by_id');
+    }
+
+    /** @return BelongsTo<User, $this> */
+    public function disconnectedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'disconnected_by_id');
     }
 
     /** @return BelongsTo<PipelineStage, $this> */

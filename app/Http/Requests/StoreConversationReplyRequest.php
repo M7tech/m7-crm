@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Conversation;
+use App\Http\Requests\Concerns\ResolvesConversation;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreConversationReplyRequest extends FormRequest
 {
-    private ?Conversation $conversation = null;
+    use ResolvesConversation;
 
     public function authorize(): bool
     {
@@ -17,15 +17,10 @@ class StoreConversationReplyRequest extends FormRequest
     /** @return array<string, mixed> */
     public function rules(): array
     {
-        return ['body' => ['required', 'string', 'max:2000']];
-    }
-
-    public function conversation(): Conversation
-    {
-        if ($this->conversation instanceof Conversation) {
-            return $this->conversation;
-        }
-
-        return $this->conversation = Conversation::query()->findOrFail($this->route('conversation'));
+        return [
+            'body' => ['required', 'string', 'max:2000'],
+            'seen_message_id' => ['required', 'integer', 'min:0'],
+            'confirm_send' => ['nullable', 'boolean'],
+        ];
     }
 }

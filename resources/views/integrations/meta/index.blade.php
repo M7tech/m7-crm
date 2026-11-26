@@ -106,8 +106,16 @@
                                         </form>
                                     @endcan
                                 @endif
+                                @if (in_array($integration->status, ['active', 'reconnect_required'], true))
+                                    @can('update', $integration)
+                                        <form method="POST" action="{{ route('integrations.meta.disconnect', $integration) }}" onsubmit="return confirm(@js(__('Disconnect this Page? Stored Facebook tokens are removed and replies pause. Conversations and leads are kept.')))">
+                                            @csrf
+                                            <flux:button type="submit" variant="outline">{{ __('Disconnect') }}</flux:button>
+                                        </form>
+                                    @endcan
+                                @endif
                                 @can('delete', $integration)
-                                    <form method="POST" action="{{ route('integrations.meta.destroy', $integration) }}" onsubmit="return confirm('Delete this Meta connection and its webhook history?')">
+                                    <form method="POST" action="{{ route('integrations.meta.destroy', $integration) }}" onsubmit="return confirm(@js(__('Permanently delete this connection? This also deletes its inbox conversations, messages, and webhook history. Use Disconnect to keep them.')))">
                                         @csrf
                                         @method('DELETE')
                                         <flux:button type="submit" variant="danger">Delete</flux:button>
@@ -115,6 +123,19 @@
                                 @endcan
                             </div>
                         </div>
+
+                        @if ($integration->connected_by_id || $integration->disconnected_at)
+                            <p class="mt-3 text-xs text-zinc-500">
+                                @if ($integration->connected_at)
+                                    {{ __('Connected :when by :name.', ['when' => $integration->connected_at->format('M j, Y H:i'), 'name' => $integration->connectedBy?->name ?? __('a former team member')]) }}
+                                @endif
+                                @if ($integration->disconnected_at)
+                                    {{ __('Disconnected :when by :name.', ['when' => $integration->disconnected_at->format('M j, Y H:i'), 'name' => $integration->disconnectedBy?->name ?? __('a former team member')]) }}
+                                @endif
+                            </p>
+                        @endif
+
+                        @include('integrations.meta._capabilities', ['integration' => $integration])
 
                         <div class="mt-5 grid gap-4 rounded-xl bg-zinc-50 p-4 text-sm dark:bg-zinc-800/70">
                             @if (filled($integration->settings['message_history_requested_at'] ?? null))

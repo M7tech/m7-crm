@@ -9,13 +9,15 @@
             <flux:button :href="route('tasks.create')" variant="primary" icon="plus" wire:navigate>{{ __('Add task') }}</flux:button>
         </div>
 
+        @include('tasks._views')
+
         @if (session('status'))
             <div class="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200">{{ session('status') }}</div>
         @endif
 
         <nav class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4" aria-label="Task filters">
-            @foreach (['pending' => 'Pending', 'today' => 'Due today', 'overdue' => 'Overdue', 'completed' => 'Completed'] as $key => $label)
-                <a href="{{ route('tasks.index', ['filter' => $key]) }}" @class([
+            @foreach (['pending' => 'Open', 'today' => 'Due today', 'overdue' => 'Overdue', 'completed' => 'Completed'] as $key => $label)
+                <a href="{{ route('tasks.index', ['filter' => $key, 'scope' => $scope]) }}" @class([
                     'rounded-xl border px-4 py-3 transition',
                     'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/40' => $filter === $key,
                     'border-zinc-200 bg-white hover:border-emerald-300 dark:border-zinc-700 dark:bg-zinc-900' => $filter !== $key,
@@ -44,11 +46,14 @@
                                 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300' => $task->priority === 'high',
                                 'bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-300' => in_array($task->priority, ['normal', 'low']),
                             ])>{{ __(ucfirst($task->priority)) }}</span>
+                            @if ($task->status === 'in_progress')
+                                <span class="rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-950 dark:text-blue-300">{{ __('In progress') }}</span>
+                            @endif
                             @if ($task->isOverdue())
                                 <span class="rounded-full bg-red-50 px-2 py-0.5 text-xs font-semibold text-red-700 dark:bg-red-950 dark:text-red-300">{{ __('Overdue') }}</span>
                             @endif
                         </div>
-                        <p class="mt-1 truncate text-sm text-zinc-500">{{ $task->lead ? $task->lead->title.' · '.$task->lead->company->name : 'General task' }}</p>
+                        <p class="mt-1 truncate text-sm text-zinc-500">{{ collect([$task->lead?->title, $task->contact?->full_name, $task->company?->name ?? $task->lead?->company?->name, $task->conversation_id ? __('Inbox conversation') : null])->filter()->implode(' · ') ?: __('General task') }}</p>
                     </div>
                     <div class="text-sm md:text-end">
                         <p @class(['font-medium', 'text-red-600 dark:text-red-400' => $task->isOverdue(), 'text-zinc-800 dark:text-zinc-200' => ! $task->isOverdue()])>{{ $task->due_at->timezone($timezone)->format('M j, Y H:i') }}</p>

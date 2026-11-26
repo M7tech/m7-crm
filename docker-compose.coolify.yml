@@ -30,6 +30,10 @@ x-app-environment: &app-environment
   MAIL_ENCRYPTION: ${MAIL_ENCRYPTION:-tls}
   MAIL_FROM_ADDRESS: ${MAIL_FROM_ADDRESS}
   MAIL_FROM_NAME: ${MAIL_FROM_NAME:-M7 CRM}
+  LOCAL_WHATSAPP_DB_PATH: /app/storage/app/local-whatsapp/users.sqlite
+  LOCAL_WHATSAPP_KEY_PATH: /app/storage/app/local-whatsapp/.local-key
+  LOCAL_WHATSAPP_COOKIE_PATH: /local-whatsapp/
+  LOCAL_WHATSAPP_SECURE_COOKIE: "true"
 
 services:
   app:
@@ -47,6 +51,7 @@ services:
       - "80"
     volumes:
       - private_storage:/app/storage/app/private
+      - sender_storage:/app/storage/app/local-whatsapp
 
   worker:
     build:
@@ -122,3 +127,4 @@ volumes:
   postgres_data:
   redis_data:
   private_storage:
+  sender_storage:
